@@ -15,3 +15,5 @@ docs/*.html
 
 # части шаблона отчёта в репозитории нужны
 !analysis/report.*.html
+
+*.log
