@@ -1,0 +1,17 @@
+# Тексты, извлечённое и посчитанное — только локально (канон, раздел 9)
+corpus/
+texts/
+analysis/*.pkl
+analysis/*.json
+analysis/_*/
+analysis/.venv*/
+.venv*/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Отчёт с цитатами — в репозиторий только по решению заказчика
+docs/*.html
+
+# части шаблона отчёта в репозитории нужны
+!analysis/report.*.html
