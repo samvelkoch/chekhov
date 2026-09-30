@@ -27,9 +27,32 @@ select{font-family:var(--f-mono); font-size:13px; color:var(--ink); background:v
 input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; border-radius:2px; border:1px solid var(--ink); background:var(--surface); color:var(--ink); max-width:100%}
 .myth article:last-child:nth-child(odd){grid-column:1/-1}
 .atlas.single{grid-template-columns:minmax(0,1fr)!important}
-.atlas.single .card{position:relative!important; max-height:none!important; overflow:visible!important}
+.atlas.single .card{position:relative!important; top:auto!important; max-height:none!important; overflow:visible!important}
+.atlas.single{margin-bottom:18px}
+.card #at-cmp{margin-top:12px}
 .card .grid2 .mini{grid-template-columns:minmax(0,1fr) 60px}
 .era .wl li{grid-template-columns:minmax(0,1fr) auto}
+.cap .tag,h3 .tag{font-family:var(--f-mono); font-weight:500; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--mark); vertical-align:middle; margin-left:8px; border:1.5px solid var(--mark); padding:1px 5px; border-radius:2px; display:inline-block; white-space:nowrap}
+#net-wrap,#hero-card,#th-card,#cal-card,#yr-card,#cmp-panel{scroll-margin-top:70px}
+.mini3{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:3px 14px; font-size:14px; align-items:baseline}
+.mini3 .h{font-family:var(--f-mono); font-size:10.5px; color:var(--muted); text-align:right}
+.mini3 .n{font-family:var(--f-mono); font-size:12px; color:var(--muted); text-align:right}
+.mini3 button{all:unset; cursor:pointer; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0}
+.mini3 button:hover{color:var(--accent); text-decoration:underline}
+.mini3 button:focus-visible{outline:2px solid var(--mark)}
+.card .chips{margin-bottom:2px}
+.card .hint{font-size:14.5px; color:var(--ink-2); margin:6px 0 10px}
+.cmp-row{margin:0 0 16px; min-width:0}
+.cmp-row .h{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 12px; margin-bottom:4px}
+.cmp-row .h b{font-family:var(--f-display); font-size:18px; line-height:1.2}
+.cmp-row .h b button{all:unset; cursor:pointer}
+.cmp-row .h b button:hover{color:var(--accent); text-decoration:underline}
+.cmp-row .h span{font-family:var(--f-mono); font-size:11.5px; color:var(--muted)}
+.cmp-row .x{all:unset; cursor:pointer; font-family:var(--f-mono); font-size:12px; color:var(--muted); margin-left:auto; padding:0 4px}
+.cmp-row .x:hover{color:var(--mark)}
+.cmp-row canvas{display:block; background:var(--thumb,transparent)}
+.yr-list{display:flex; flex-wrap:wrap; gap:6px}
+.lnk.plain{text-decoration:none; border-bottom:1px dotted var(--axis)}
 .wbox{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:14px; margin-top:12px}
 </style>
 
@@ -44,7 +67,7 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
       <label for="hl-input">Подсветить слово в рассказах</label>
       <input type="search" id="hl-input" placeholder="например, самовар" autocomplete="off" spellcheck="false">
       <div class="chips" id="hl-chips"></div>
-      <span class="count" id="hl-count" aria-live="polite"></span>
+      <span class="count" id="hl-count" aria-live="polite"></span><span class="count" id="yr-note" aria-live="polite"></span>
     </div>
     <div class="ecg" id="ecg"><canvas id="ecg-cv" role="img" aria-label="Все рассказы и все письма Чехова на одной оси времени: рассказы — пики вверх, высота по числу слов; письма — пики вниз"></canvas></div>
     <div class="legend-h" id="ecg-legend"></div>
@@ -53,7 +76,7 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
   </div>
 </header>
 <div class="inner"><div class="layout">
-<nav class="rail" aria-label="Разделы"><div class="g">I · Обзор</div><a href="#glavnoe"><span>I.1</span>Главное коротко</a><a href="#mify"><span>I.2</span>Мифы и факты</a><a href="#hronologia"><span>I.3</span>Хронология</a><div class="g">II · Проза</div><a href="#dlina"><span>II.1</span>Длина и фраза</a><a href="#dialog"><span>II.2</span>Диалог и «я»</a><a href="#znaki"><span>II.3</span>Знаки</a><a href="#pechat"><span>II.4</span>Где и как подписано</a><a href="#atlas"><span>II.5</span>Атлас рассказов</a><div class="g">III · Пьесы</div><a href="#kto"><span>III.1</span>Кто говорит</a><a href="#pauzy"><span>III.2</span>Паузы и ремарки</a><div class="g">IV · Письма</div><a href="#gde"><span>IV.1</span>Когда и откуда</a><a href="#adresaty"><span>IV.2</span>Адресаты</a><a href="#podpisi"><span>IV.3</span>Как он подписывался</a><a href="#kunst"><span>IV.4</span>Кунсткамера подписей</a><a href="#bran"><span>IV.5</span>Крепкое словцо</a><a href="#dengi"><span>IV.6</span>Деньги</a><div class="g">V · Врач</div><a href="#praktika"><span>V.1</span>Советы и практика</a><a href="#bolezn"><span>V.2</span>Своя болезнь</a><a href="#vrachi"><span>V.3</span>Врачи в прозе и на сцене</a><div class="g">VI · Слова</div><a href="#slovar"><span>VI.1</span>Частые слова</a><a href="#poisk"><span>VI.2</span>Словоискатель</a><a href="#epohi"><span>VI.3</span>Слова эпох</a><div class="g">VII · Мир Чехова</div><a href="#lyudi"><span>VII.1</span>Люди в письмах</a><a href="#geroi"><span>VII.2</span>Имена героев</a><a href="#mesta"><span>VII.3</span>Места</a><a href="#zveri"><span>VII.4</span>Звери и клички</a><a href="#eda"><span>VII.5</span>Еда и напитки</a><a href="#sad"><span>VII.6</span>Сад, лес, дорога</a><a href="#cveta"><span>VII.7</span>Цвета</a><div class="g">VIII · Рекорды и методика</div><a href="#rekordy"><span>VIII.1</span>Рекорды</a><a href="#korpus"><span>VIII.2</span>Корпус</a><a href="#metod"><span>VIII.3</span>Методика</a></nav>
+<nav class="rail" aria-label="Разделы"><div class="g">I · Обзор</div><a href="#glavnoe"><span>I.1</span>Главное коротко</a><a href="#mify"><span>I.2</span>Мифы и факты</a><a href="#hronologia"><span>I.3</span>Хронология</a><div class="g">II · Проза</div><a href="#dlina"><span>II.1</span>Длина и фраза</a><a href="#dialog"><span>II.2</span>Диалог и «я»</a><a href="#znaki"><span>II.3</span>Знаки</a><a href="#pechat"><span>II.4</span>Где и как подписано</a><a href="#atlas"><span>II.5</span>Атлас рассказов</a><div class="g">III · Пьесы</div><a href="#kto"><span>III.1</span>Кто говорит</a><a href="#pauzy"><span>III.2</span>Паузы и ремарки</a><div class="g">IV · Письма</div><a href="#gde"><span>IV.1</span>Когда и откуда</a><a href="#adresaty"><span>IV.2</span>Адресаты</a><a href="#podpisi"><span>IV.3</span>Как он подписывался</a><a href="#kunst"><span>IV.4</span>Кунсткамера подписей</a><a href="#bran"><span>IV.5</span>Крепкое словцо</a><a href="#dengi"><span>IV.6</span>Деньги</a><div class="g">V · Врач</div><a href="#praktika"><span>V.1</span>Советы и практика</a><a href="#bolezn"><span>V.2</span>Своя болезнь</a><a href="#vrachi"><span>V.3</span>Врачи в прозе и на сцене</a><div class="g">VI · Слова</div><a href="#slovar"><span>VI.1</span>Частые слова</a><a href="#poisk"><span>VI.2</span>Словоискатель</a><a href="#karta"><span>VI.3</span>Карта словаря</a><a href="#epohi"><span>VI.4</span>Слова эпох</a><a href="#temy"><span>VI.5</span>Темы</a><div class="g">VII · Мир Чехова</div><a href="#lyudi"><span>VII.1</span>Круг Чехова</a><a href="#geroi"><span>VII.2</span>Имена героев</a><a href="#mesta"><span>VII.3</span>Места</a><a href="#zveri"><span>VII.4</span>Звери и клички</a><a href="#eda"><span>VII.5</span>Еда и напитки</a><a href="#sad"><span>VII.6</span>Сад, лес, дорога</a><a href="#cveta"><span>VII.7</span>Цвета</a><div class="g">VIII · Рекорды и методика</div><a href="#rekordy"><span>VIII.1</span>Рекорды</a><a href="#korpus"><span>VIII.2</span>Корпус</a><a href="#metod"><span>VIII.3</span>Методика</a></nav>
 <div class="content">
 
 <div class="part" id="part-obzor">
@@ -71,11 +94,12 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
 </section>
 <section id="hronologia">
   <div class="kick"><b>I.3</b><span>Обзор</span></div>
-  <h2>Хронология</h2>
+  <h2>Хронология <span class="tag">интерактив</span></h2>
   <p class="finding" id="f-chrono"></p>
-  <div class="panel"><div class="cap"><span class="t">Сколько написано за год</span><span class="u">тыс. слов: рассказы и повести по году первой публикации, письма по дате</span></div>
+  <div class="panel"><div class="cap"><span class="t">Сколько написано за год</span><span class="u">тыс. слов: рассказы и повести по году первой публикации, письма по дате; нажмите на год — что в нём написано</span></div>
     <div class="legend" id="lg-chrono"></div>
     <div class="chart" id="c-chrono"></div></div>
+  <div class="atlas single"><div class="card" id="yr-card" aria-live="polite"></div></div>
   <div class="panel"><div class="cap"><span class="t">Откуда он писал письма</span><span class="u">писем за год по месту в дате письма; места с 8 письмами и больше — в порядке первого письма, остальные — группами</span></div>
     <div class="chart" id="c-places"></div><p class="note" id="t-places" style="margin-top:10px;font-size:13.5px"></p></div>
 </section>
@@ -125,10 +149,13 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
 </section>
 <section id="atlas">
   <div class="kick"><b>II.5</b><span>Проза</span></div>
-  <h2>Атлас рассказов</h2>
+  <h2>Атлас рассказов <span class="tag">интерактив</span></h2>
   <p>Выберите рассказ из списка или нажмите на пик в шапке. Штрих в «строении» — абзац (длина по числу слов), красным — реплики.</p>
   <div class="ctrl"><label class="lab" for="at-sel">Рассказ</label><select id="at-sel"></select><button class="btn" type="button" id="at-rand">Случайный</button></div>
   <div class="atlas single"><div class="card" id="at-card"></div></div>
+  <div class="panel" id="cmp-panel"><div class="cap"><span class="t">Строение рядом <span class="tag">интерактив</span></span><span class="u">слева направо — от начала рассказа до конца; штрих — абзац (чем выше, тем длиннее), красным — реплики; высота общая для всех строк</span></div>
+    <div class="ctrl"><label class="lab" for="cmp-sel">Добавить рассказ</label><select id="cmp-sel"></select><button class="btn" type="button" id="cmp-add">Добавить</button><button class="btn" type="button" id="cmp-clear">Очистить</button></div>
+    <div id="cmp-list"></div></div>
 </section>
 </div>
 
@@ -162,6 +189,9 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
   <p class="finding" id="f-gde"></p>
   <div class="panel"><div class="cap"><span class="t">Писем в месяц</span><span class="u">по дате письма; письма без точного месяца не показаны</span></div>
     <div class="chart" id="c-months"></div></div>
+  <div class="panel"><div class="cap"><span class="t">Календарь писем <span class="tag">интерактив</span></span><span class="u" id="u-cal"></span></div>
+    <div class="chart" id="c-cal"></div>
+    <div class="card" id="cal-card" aria-live="polite" style="margin-top:14px"></div></div>
   <div class="grid2">
     <div class="panel"><div class="cap"><span class="t">Места, откуда больше всего писем</span><span class="u">писем</span></div><div class="chart" id="c-placebars"></div></div>
     <div class="panel"><div class="cap"><span class="t">Длина письма</span><span class="u">слов в типичном письме (медиана), по годам</span></div><div class="chart" id="c-letlen"></div></div>
@@ -169,11 +199,14 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
 </section>
 <section id="adresaty">
   <div class="kick"><b>IV.2</b><span>Письма</span></div>
-  <h2>Адресаты</h2>
+  <h2>Адресаты <span class="tag">интерактив</span></h2>
   <p class="finding" id="f-adr"></p>
   <div class="panel"><div class="cap"><span class="t">Кому писал больше всего</span><span class="u">писем по годам, 25 главных адресатов; нажмите на имя — карточка ниже</span></div>
     <div class="chart" id="c-adr"></div></div>
   <div class="atlas single"><div class="card" id="adr-card"></div></div>
+  <div class="panel"><div class="cap"><span class="t">Когда он писал адресату</span><span class="u">писем по годам; выберите адресата и, если хотите, второго для сравнения</span></div>
+    <div class="ctrl"><label class="lab" for="adr-sel">Адресат</label><select id="adr-sel"></select><label class="lab" for="adr-cmp">сравнить с</label><select id="adr-cmp"></select></div>
+    <div class="legend" id="lg-adrtl"></div><div class="chart" id="c-adrtl"></div></div>
   <h3>Как он обращался</h3>
   <p class="note">Первые слова письма, если это короткое обращение. Три самых частых для каждого из 18 главных адресатов.</p>
   <div class="salut" id="salut"></div>
@@ -213,6 +246,7 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
   <h3>Купюры внутри слова</h3>
   <p class="note">Иногда издатель оставлял первые буквы. По ним видно, что было вырезано.</p>
   <div class="cutw" id="cutw"></div>
+</section>
 <section id="dengi">
   <div class="kick"><b>IV.6</b><span>Письма</span></div>
   <h2>Деньги</h2>
@@ -225,6 +259,7 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
     <div class="panel"><div class="cap"><span class="t">Суммы в письмах</span><span class="u">рубли, шкала логарифмическая; точка — сумма, названная в письме</span></div><div class="chart" id="c-dsum"></div></div>
     <div class="panel"><div class="cap"><span class="t">С кем о деньгах</span><span class="u">денежных слов на 10 000 слов писем; адресаты с 8000 слов и больше</span></div><div class="chart" id="c-dto"></div></div>
   </div>
+  <div class="panel"><div class="cap"><span class="t">Денежные слова в письмах</span><span class="u">раз; нажмите на слово — оно откроется в словоискателе</span></div><div class="chart" id="c-dwords"></div></div>
   <div class="ctrl"><span class="lab">Показать</span><div id="sl-dengi"></div></div>
   <div class="qlist" id="dengi-list"></div>
   <p class="note" id="t-dengi"></p>
@@ -267,7 +302,7 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
 </div>
 
 <div class="part" id="part-slova">
-<div class="part-head"><div class="n">Часть VI</div><h1>Слова</h1><p class="lead">Частые слова рассказов, пьес и писем, поиск любого слова по тридцати томам и слова, которые отличают каждый период.</p></div>
+<div class="part-head"><div class="n">Часть VI</div><h1>Слова</h1><p class="lead">Частые слова рассказов, пьес и писем, поиск любого слова по тридцати томам, карта словаря, слова и темы каждого периода. Слова в графиках нажимаются: они открываются в словоискателе.</p></div>
 <section id="slovar">
   <div class="kick"><b>VI.1</b><span>Слова</span></div>
   <h2>Частые слова</h2>
@@ -277,7 +312,7 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
 </section>
 <section id="poisk">
   <div class="kick"><b>VI.2</b><span>Слова</span></div>
-  <h2>Словоискатель</h2>
+  <h2>Словоискатель <span class="tag">интерактив</span></h2>
   <p>Слово во всех формах: сколько раз оно встречается в рассказах, пьесах и письмах и как меняется его частота от периода к периоду. В словаре 5285 слов, которые встречаются 30 раз и больше.</p>
   <div class="ctrl"><label class="lab" for="ws-input">Слово</label><input type="search" id="ws-input" placeholder="например, скука" autocomplete="off" spellcheck="false"><div class="chips" id="ws-chips"></div></div>
   <div class="grid2">
@@ -285,33 +320,63 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
     <div class="panel"><div class="cap"><span class="t">Где встречается</span><span class="u">раз</span></div><div class="chart" id="c-ws2"></div><p class="note" id="ws-note"></p></div>
   </div>
 </section>
-<section id="epohi">
+<section id="karta">
   <div class="kick"><b>VI.3</b><span>Слова</span></div>
-  <h2>Слова эпох</h2>
+  <h2>Карта словаря <span class="tag">интерактив</span></h2>
+  <p id="t-karta"></p>
+  <div class="wm-ctl">
+    <button type="button" class="wm-play" id="wm-play">▶ Играть</button>
+    <div class="wm-per" id="wm-per" role="group" aria-label="Период"></div>
+    <input type="search" id="wm-find" placeholder="найти слово на карте" autocomplete="off" spellcheck="false" aria-label="Найти слово на карте">
+  </div>
+  <div class="ctrl"><span class="lab">Группа</span><div class="chips" id="wm-groups"></div></div>
+  <div class="panel"><div class="chart wmap" id="c-wmap"></div></div>
+  <p class="wm-read" id="wm-read" aria-live="polite"></p>
+</section>
+<section id="epohi">
+  <div class="kick"><b>VI.4</b><span>Слова</span></div>
+  <h2>Слова эпох <span class="tag">интерактив</span></h2>
   <p class="finding" id="f-epohi"></p>
   <p class="note">Сила отличия — насколько чаще слово встречается в периоде, чем в остальные годы, с поправкой на редкость. Слово должно встретиться в периоде хотя бы 8 раз и хотя бы в двух рассказах (в письмах — в трёх письмах).</p>
   <div class="ctrl"><span class="lab">Тексты</span><div id="sl-ep"></div></div>
   <div class="grid2" id="ep-grid"></div>
 </section>
+<section id="temy">
+  <div class="kick"><b>VI.5</b><span>Слова</span></div>
+  <h2>Темы <span class="tag">интерактив</span></h2>
+  <p id="t-temy"></p>
+  <p class="finding" id="f-temy"></p>
+  <div class="panel"><div class="cap"><span class="t">Темы по периодам</span><span class="u" id="u-temy"></span></div>
+    <div class="ctrl"><span class="lab">Тексты</span><div id="sl-th"></div><span class="lab">Порядок</span><div id="sl-thsort"></div></div>
+    <div class="chart" id="c-temy"></div></div>
+  <div class="atlas single"><div class="card" id="th-card" aria-live="polite"></div></div>
+</section>
 </div>
 
 <div class="part" id="part-mir">
-<div class="part-head"><div class="n">Часть VII</div><h1>Мир Чехова</h1><p class="lead">Люди, места, звери, еда и цвета — в рассказах и пьесах и в письмах. Рейтинги считаются по числу текстов, а не упоминаний: так один длинный текст не забивает весь список.</p></div>
+<div class="part-head"><div class="n">Часть VII</div><h1>Мир Чехова</h1><p class="lead">Люди, места, звери, еда и цвета — в рассказах и пьесах и в письмах. Рейтинги считаются по числу текстов, а не упоминаний: так один длинный текст не забивает весь список. Имена, слова и тексты здесь нажимаются.</p></div>
 <section id="lyudi">
   <div class="kick"><b>VII.1</b><span>Мир Чехова</span></div>
-  <h2>Люди в письмах</h2>
+  <h2>Круг Чехова <span class="tag">интерактив</span></h2>
+  <p id="t-net"></p>
   <p class="finding" id="f-lyudi"></p>
-  <div class="panel"><div class="cap"><span class="t">Кого он упоминает</span><span class="u">число писем, где названа фамилия; цвет — есть ли такая фамилия среди адресатов (однофамильцы не различаются)</span></div>
+  <div class="wd-ctl"><span class="lab">Период</span><div class="chips" id="pp-per"></div></div>
+  <div class="wd-ctl"><input type="search" id="pp-find" placeholder="найти имя" autocomplete="off" spellcheck="false" aria-label="Найти имя"><div class="chips" id="pp-sug"></div></div>
+  <div class="ctrl"><span class="lab">Круги</span><div class="chips" id="pp-clusters"></div></div>
+  <div class="wd-grid" id="net-wrap"><div class="panel" style="margin:0"><div class="chart" id="c-net"></div></div><aside class="card" id="pp-card" aria-live="polite"></aside></div>
+  <div class="panel"><div class="cap"><span class="t">Кого чаще всего упоминает</span><span class="u">число писем, где назван человек; цвет — есть ли такая фамилия среди адресатов (однофамильцы не различаются); нажмите на имя — карточка в сети</span></div>
     <div class="legend" id="lg-lyudi"></div><div class="chart" id="c-lyudi"></div></div>
 </section>
 <section id="geroi">
   <div class="kick"><b>VII.2</b><span>Мир Чехова</span></div>
-  <h2>Имена героев</h2>
+  <h2>Имена героев <span class="tag">интерактив</span></h2>
   <p class="finding" id="f-geroi"></p>
   <div class="grid2">
-    <div class="panel"><div class="cap"><span class="t">Мужские имена</span><span class="u">число рассказов и пьес</span></div><div class="chart" id="c-nm"></div></div>
-    <div class="panel"><div class="cap"><span class="t">Женские имена</span><span class="u">число рассказов и пьес</span></div><div class="chart" id="c-nf"></div></div>
+    <div class="panel"><div class="cap"><span class="t">Мужские имена</span><span class="u">число рассказов и пьес; нажмите на имя</span></div><div class="chart" id="c-nm"></div></div>
+    <div class="panel"><div class="cap"><span class="t">Женские имена</span><span class="u">число рассказов и пьес; нажмите на имя</span></div><div class="chart" id="c-nf"></div></div>
   </div>
+  <div class="atlas single"><div class="card" id="hero-card" aria-live="polite"></div></div>
+  <details class="data" id="hero-all"><summary>Все имена героев (<span id="hero-all-n"></span>)</summary><div class="chips" id="hero-allchips" style="margin-top:10px"></div></details>
   <h3>Имя и отчество</h3><p class="note">Самые частые пары — в скольких текстах встречаются.</p>
   <div class="cutw" id="namepatr"></div>
 </section>
@@ -353,8 +418,12 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
 </section>
 <section id="cveta">
   <div class="kick"><b>VII.7</b><span>Мир Чехова</span></div>
-  <h2>Цвета</h2>
+  <h2>Цвета <span class="tag">интерактив</span></h2>
   <p class="finding" id="f-cveta"></p>
+  <p id="t-palette"></p>
+  <div class="panel"><div class="cap"><span class="t">Палитра каждого периода</span><span class="u">доля цветовых слов; ширина отрезка — частота цвета, цвет отрезка — сам цвет; нажмите — слово в словоискателе</span></div>
+    <div class="ctrl"><span class="lab">Тексты</span><div id="sl-pal"></div></div>
+    <div class="chart" id="c-palette"></div></div>
   <div class="panel"><div class="cap"><span class="t">Цвета и оттенки</span><span class="u">% текстов: рассказы и пьесы ← → письма; квадратик — сам цвет</span></div><div class="chart" id="c-col"></div></div>
   <div class="panel"><div class="cap"><span class="t">Цвета по периодам</span><span class="u">на 10 000 слов рассказов и пьес, восемь самых частых</span></div><div class="legend" id="lg-colper"></div><div class="chart" id="c-colper"></div></div>
 </section>

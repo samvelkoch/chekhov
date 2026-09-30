@@ -34,7 +34,10 @@
 | 2. Манифест: роли, годы, подпись в печати, адресаты, даты, места, дубли | `manifest.py --qa` | `texts/` |
 | 3. Абзацы по видам, подписи и конверты писем, купюры, леммы pymorphy3 | `analysis/prepare.py --qa` | `analysis/corpus.pkl` |
 | 4. Подсчёты по модулям | `analysis/compute.py --qa [модуль …]` | `analysis/stats.json` |
-| 5. Отчёт | `analysis/build_report.py` (+ `report.head/body/lib/app/chrome`) | `docs/prosvet.html` |
+| 4б. Данные интерактивов: палитра периодов, карта словаря (PPMI → SVD → t-SNE), сеть «Круг Чехова», герои, темы | `analysis/explore.py --qa` | `analysis/explore.json` |
+| 5. Отчёт | `analysis/build_report.py` (+ `report.head/body/lib/app/ui/chrome`) | `docs/prosvet.html` |
+
+Поля `stats.json` и `explore.json` описаны в [`analysis/DATA.md`](analysis/DATA.md).
 
 Явные списки: `analysis/rules.py` (пороги мифов, словари брани и медицины, правило голосов),
 `analysis/sig_titles.py` (просмотренные самоименования), `analysis/world_lists.py` (клички, исправления мест и людей), `analysis/med_labels.py` (разметка 171 врачебного абзаца писем,
@@ -45,7 +48,7 @@
 ```bash
 pip install -r requirements.txt
 python extract.py --qa && python manifest.py --qa
-cd analysis && python prepare.py --qa && python compute.py --qa && python build_report.py
+cd analysis && python prepare.py --qa && python compute.py --qa && python explore.py --qa && python build_report.py
 node check_report.js ../docs/prosvet.html
 ```
 

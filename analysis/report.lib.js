@@ -52,12 +52,13 @@ function hbars(box, rows, {color='var(--s1)', unit='', labelW=150, swatch=false,
     const ax=el('g',{class:'ax'},s);
     ticks(max,4).forEach(t=>{ el('line',{x1:sc(t),x2:sc(t),y1:0,y2:h-20,stroke:css('--grid')},ax); txt(ax,sc(t),h-6,fmt(t),{'text-anchor':'middle'}); });
     rows.forEach((r,i)=>{ const y=i*rowH+4, bh=rowH-9;
-      txt(s,labelW-8,y+bh-1,r.l,{'text-anchor':'end',style:`font-family:var(--f-body);font-size:13.5px;fill:var(--ink)${onClick?';text-decoration:underline dotted':''}`});
+      const clk=onClick&&r.click!==false;
+      txt(s,labelW-8,y+bh-1,r.l,{'text-anchor':'end',style:`font-family:var(--f-body);font-size:13.5px;fill:var(--ink)${clk?';text-decoration:underline dotted':''}`});
       if(swatch) el('rect',{x:labelW+2,y:y+1,width:11,height:11,rx:2,fill:r.hex,stroke:css('--ring'),'stroke-width':1},s);
       el('rect',{x:x0,y,width:Math.max(1,sc(r.v)-x0),height:bh,rx:3,fill:r.c||color},s);
       txt(s,sc(r.v)+6,y+bh-2,fmtv(r.v)+unit);
-      const hit=el('rect',{class:'hit'+(onClick?' clickable':''),x:0,y:y-3,width:w,height:rowH,'data-tip':r.tip||`${esc(r.l)}: ${fmtv(r.v)}${unit}`},s);
-      if(onClick){ hit.setAttribute('tabindex','0'); hit.setAttribute('role','button'); hit.setAttribute('aria-label',r.l);
+      const hit=el('rect',{class:'hit'+(clk?' clickable':''),x:0,y:y-3,width:w,height:rowH,'data-tip':r.tip||`${esc(r.l)}: ${fmtv(r.v)}${unit}`},s);
+      if(clk){ hit.setAttribute('tabindex','0'); hit.setAttribute('role','button'); hit.setAttribute('aria-label',r.l);
         hit.addEventListener('click',()=>onClick(r)); hit.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); onClick(r);} }); }
     });
     el('line',{x1:x0,x2:x0,y1:0,y2:h-20,stroke:css('--axis')},s);

@@ -1077,7 +1077,7 @@ def world():
             acc[k] = max(acc[k], n) if k != name else acc[k] + n if k in acc else n
         return [[k, v] for k, v in acc.most_common(top)]
     out["places"] = {g: clean_rank(rank({"geo"}, g, 200), WL.PLACE_DROP, WL.PLACE_ALIAS, 40) for g in grp}
-    ppl = clean_rank(rank({"surn", "unk"}, "letters", 400), WL.PEOPLE_DROP, WL.PEOPLE_ALIAS, 60)
+    ppl = clean_rank(rank({"surn", "unk"}, "letters", 400), WL.PEOPLE_DROP, WL.PEOPLE_ALIAS, 130)
     out["people_letters"] = [[k, n, k.lower().replace("ё", "е") in addr_sur] for k, n in ppl]
     nw = {"m": [], "f": []}
     for g in ("m", "f"):
@@ -1291,7 +1291,7 @@ def people_force():
         n = sum(1 for ps in L.values() if re.search(r"(?<![А-Яа-яЁё])" + rx, " ".join(ps)))
         ppl.append([name, n, name.lower() in addr])
     ppl.sort(key=lambda r: -r[1])
-    OUT["world"]["people_letters"] = ppl[:60]
+    OUT["world"]["people_letters"] = ppl[:130]
     if QA:
         print("  люди:", ppl[:15])
 

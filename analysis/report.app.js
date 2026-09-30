@@ -25,7 +25,7 @@ const ST = A.map((a,j)=>({...a,j})).filter(a=>a.y);
   ST.forEach(a=>{ k[a.y]=(k[a.y]||0)+1; a.t0 = a.y + (k[a.y]-0.5)/cnt[a.y]; }); })();
 const LR = LT.strip.rows.map(r=>{ const y=Math.floor(r[0]/10000), m=Math.floor(r[0]/100)%100, d=r[0]%100; return {y,m,d,t0:y+((m||7)-1)/12+((d||15)-1)/372,w:r[1],g:r[2],to:LT.strip.names[r[3]]}; });
 const MONN=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
-const hs = {hl:null, sel:null}; let EC=null;
+const hs = {hl:null, sel:null, yr:null}; let EC=null; let UI_READY=false;
 function lexStories(k){ const L=LEX[k]; if(!L||!L[4].length) return null; const m=new Map(); for(let i=0;i<L[4].length;i+=2) m.set(L[4][i],L[4][i+1]); return m; }
 function drawECG(){
   const box=$('#ecg'), cv=$('#ecg-cv'); const Wd=box.clientWidth; const dpr=Math.min(2,devicePixelRatio||1);
@@ -42,15 +42,16 @@ function drawECG(){
   c.font='11px "IBM Plex Mono", monospace'; c.fillStyle=css('--hlabel');
   PERIODS.forEach(([lab,a,b,name],i)=>{ const x=sx(a); c.globalAlpha=.35; c.fillRect(x,top-10,1,H-bot-top+10); c.globalAlpha=1;
     if(Wd>=560 || i%2===0) c.fillText(name,x+4,top-12); });
-  const hi = hs.hl?lexStories(hs.hl):null; const upH=mid-top-4, dnH=H-bot-mid-4;
+  const hi = hs.hl?lexStories(hs.hl):null; const upH=mid-top-4, dnH=H-bot-mid-4; const yr=hs.yr;
+  if(yr!=null){ c.globalAlpha=.13; c.fillStyle=css('--hsel'); c.fillRect(sx(yr),top-10,sx(yr+1)-sx(yr),H-bot-top+10); c.globalAlpha=1; }
   const maxW=Math.log10(Math.max(...ST.map(a=>a.w))), maxL=Math.log10(Math.max(...LR.map(r=>r.w))+1);
   // письма вниз
-  LR.forEach(r=>{ const h=Math.max(1,dnH*Math.log10(r.w+1)/maxL); c.fillStyle=css(GRPC[r.g]); c.globalAlpha=hi?.12:.55; c.fillRect(sx(r.t0),mid+1,1,h); });
+  LR.forEach(r=>{ const h=Math.max(1,dnH*Math.log10(r.w+1)/maxL); c.fillStyle=css(GRPC[r.g]); c.globalAlpha=hi?.12:(yr!=null?(r.y===yr?.95:.12):.55); c.fillRect(sx(r.t0),mid+1,1,h); });
   // рассказы вверх
   const hiMax = hi&&hi.size ? Math.max(...[...hi.entries()].map(([j,n])=>n/A[j].w)) : 1;
-  ST.forEach(a=>{ const h=Math.max(2,upH*Math.log10(a.w)/maxW); const on=!hi||hi.has(a.j);
-    c.globalAlpha=on?1:.14; c.fillStyle= hi&&on ? css('--hsel') : css(OTC[a.ot]||'--neutral-bar');
-    const wbar = hi&&on ? 1.5+2*Math.min(1,(hi.get(a.j)/a.w)/hiMax) : 1.6;
+  ST.forEach(a=>{ const h=Math.max(2,upH*Math.log10(a.w)/maxW); const on=hi?hi.has(a.j):(yr!=null?a.y===yr:true);
+    c.globalAlpha=on?1:.14; c.fillStyle= (hi||yr!=null)&&on ? css('--hsel') : css(OTC[a.ot]||'--neutral-bar');
+    const wbar = hi&&on ? 1.5+2*Math.min(1,(hi.get(a.j)/a.w)/hiMax) : (yr!=null&&on?3:1.6);
     c.fillRect(sx(a.t0)-wbar/2,mid-h,wbar,h);
     if(hs.sel===a.j){ c.globalAlpha=1; c.strokeStyle=css('--hsel'); c.lineWidth=1.5; c.strokeRect(sx(a.t0)-4,mid-h-4,8,h+4); } });
   c.globalAlpha=1; c.fillStyle=css('--hmark'); c.fillRect(L,mid,Wd-L-R,1);
@@ -107,7 +108,7 @@ $('#myths').innerHTML=D.myths.map(m=>{ const s=(m.src||[])[0]; const q = s ? `<p
   return `<article><p class="q">${esc(m.q)}</p>${verdictHTML(m.v)}<p class="num">${esc(m.num).replace(/(\d)\.(\d)/g,'$1,$2')}</p>${q}</article>`; }).join('');
 
 /* хронология */
-function stackYears(box, years, series, {h=240, unit='', fmtv=fmt, notes=[]}={}){
+function stackYears(box, years, series, {h=240, unit='', fmtv=fmt, notes=[], onYear=null, mark=null}={}){
   return chart(()=>{ const [s,w]=svg(box,h); const L=40,R=8,T=22,B=24; const tot=years.map((_,i)=>series.reduce((a,sr)=>a+(sr.v[i]||0),0));
     const max=niceMax(Math.max(...tot,1)); const bw=(w-L-R)/years.length; const sy=v=>h-B-(h-B-T)*v/max; const ax=el('g',{class:'ax'},s);
     ticks(max,4).forEach(t=>{ el('line',{x1:L,x2:w-R,y1:sy(t),y2:sy(t),stroke:css('--grid')},ax); txt(ax,L-6,sy(t)+4,fmtv(t),{'text-anchor':'end'}); });
@@ -115,7 +116,9 @@ function stackYears(box, years, series, {h=240, unit='', fmtv=fmt, notes=[]}={})
     years.forEach((y,i)=>{ let acc=0; const x=L+bw*i+1;
       series.forEach(sr=>{ const v=sr.v[i]||0; if(v<=0) return; el('rect',{x,y:sy(acc+v),width:Math.max(1,bw-2),height:Math.max(.5,sy(acc)-sy(acc+v)),fill:sr.c},s); acc+=v; });
       if(y%every===0) txt(ax,x+bw/2-1,h-7,w<560?String(y).slice(2):y,{'text-anchor':'middle'});
-      el('rect',{class:'hit',x:x-1,y:T,width:bw,height:h-B-T,'data-tip':`<b>${y}</b>`+series.map(sr=>`<br>${esc(sr.k)}: ${fmtv(sr.v[i]||0)}${unit}`).join('')},s); });
+      const hit=el('rect',{class:'hit'+(onYear?' clickable':''),x:x-1,y:T,width:bw,height:h-B-T,'data-tip':`<b>${y}</b>`+series.map(sr=>`<br>${esc(sr.k)}: ${fmtv(sr.v[i]||0)}${unit}`).join('')+(onYear?'<br>нажмите — что написано в этом году':'')},s);
+      if(onYear) hit.addEventListener('click',()=>onYear(y)); });
+    if(mark){ const my=mark(); const mi=years.indexOf(my); if(mi>=0){ el('rect',{x:L+bw*mi-.5,y:T-2,width:bw+1,height:h-B-T+2,fill:'none',stroke:css('--mark'),'stroke-width':1.5,'pointer-events':'none'},s); } }
     notes.forEach(n=>{ const i=years.indexOf(n.y); if(i<0) return; const x=L+bw*i+bw/2; el('line',{x1:x,x2:x,y1:T-6,y2:h-B,stroke:css('--muted'),'stroke-dasharray':'2 3'},s);
       txt(s,x+3,T-8,n.t,{style:'fill:var(--ink-2);font-size:10.5px'}); });
     el('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:css('--axis')},s);
@@ -125,8 +128,8 @@ function firstTop(p){ const ys=Object.keys(LT.place_year).map(Number).sort((a,b)
 const YS = O.by_year.filter(r=>r.y>=1877).map(r=>r.y);
 const by = y=>O.by_year.find(r=>r.y===y);
 legendTo($('#lg-chrono'), [['рассказы и повести','var(--s1)'],['пьесы','var(--c3)'],['письма','var(--s2)']]);
-stackYears($('#c-chrono'), YS, [{k:'рассказы',c:'var(--s1)',v:YS.map(y=>by(y).story_w/1000)},{k:'пьесы',c:'var(--c3)',v:YS.map(y=>by(y).play_w/1000)},{k:'письма',c:'var(--s2)',v:YS.map(y=>by(y).letter_w/1000)}],
-  {fmtv:v=>fmt(Math.round(v)), unit:' тыс. слов', notes:['Мелихово','Ялта'].map(p=>({y:firstTop(p),t:p})).filter(n=>n.y)});
+const chronoDraw = stackYears($('#c-chrono'), YS, [{k:'рассказы',c:'var(--s1)',v:YS.map(y=>by(y).story_w/1000)},{k:'пьесы',c:'var(--c3)',v:YS.map(y=>by(y).play_w/1000)},{k:'письма',c:'var(--s2)',v:YS.map(y=>by(y).letter_w/1000)}],
+  {fmtv:v=>fmt(Math.round(v)), unit:' тыс. слов', notes:['Мелихово','Ялта'].map(p=>({y:firstTop(p),t:p})).filter(n=>n.y), onYear:y=>yearCard(y,true), mark:()=>YR.y});
 const bestStY = O.by_year.reduce((a,r)=>r.story_n>a.story_n?r:a);
 const bestLY = LT.by_year.reduce((a,r)=>r.n>a.n?r:a);
 const lastStories = O.by_year.filter(r=>r.y>=1893).reduce((a,r)=>a+r.story_n,0);
@@ -210,8 +213,9 @@ function selectStory(j,scroll){ const a=A[j]; hs.sel=j; drawECG(); sel.value=j; 
   <div class="src">${a.out?'«'+esc(a.out)+'» · ':''}подпись: ${esc(a.sig||a.sf)}</div>
   <div class="tiles"><div><b>${fmt(a.w)}</b><span>слов</span></div><div><b>${fmt(a.np)}</b><span>абзацев</span></div><div><b>${fmt1(a.dlg)}%</b><span>диалог</span></div>
   <div><b>${fmt1(a.sm||0)}</b><span>слов в фразе (медиана)</span></div><div><b>${fmt1(a.ya)}</b><span>«я» на 1000 слов</span></div><div><b>${fmt1(a.pu['!'])}</b><span>«!» на 1000 слов</span></div></div>
+  <p style="margin:0 0 6px"><button type="button" class="btn" id="at-cmp">+ в сравнение строения</button></p>
   <h4>Строение</h4><div id="at-struc"></div><h4>Первая фраза</h4><p class="quote">${esc(a.first)}</p><h4>Последняя фраза</h4><p class="quote">${esc(a.last)}</p>`;
-  strucCanvas($('#at-struc'),a); if(scroll) $('#atlas').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); }
+  strucCanvas($('#at-struc'),a); $('#at-cmp').addEventListener('click',()=>cmpAdd(j,true)); if(scroll) $('#atlas').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); }
 sel.addEventListener('change',()=>selectStory(+sel.value,false));
 $('#at-rand').addEventListener('click',()=>{ const a=SA[Math.floor(Math.random()*SA.length)]; selectStory(a.j,false); });
 chart(()=>{ if(hs.sel==null){ const d=A.findIndex(a=>a.t==='Дама с собачкой'); selectStory(d>=0?d:SA[0].j,false); hs.sel=null; drawECG(); } }, null);
@@ -250,7 +254,7 @@ $('#f-gde').textContent = `Больше всего писем написано �
 const AY = []; for(let y=1875;y<=1904;y++) AY.push(y);
 const A25 = ADR.slice(0,25);
 heatYears($('#c-adr'), A25.map(a=>`${a.nom} (${a.n})`), AY, A25.map(a=>AY.map(y=>a.ys[y]||0)), {labelW:220, onRow:i=>selectAdr(i,true), color:'--s1'});
-function selectAdr(i,scroll){ const a=ADR[i]; const card=$('#adr-card');
+function selectAdr(i,scroll){ const a=ADR[i]; const card=$('#adr-card'); if($('#adr-sel')) $('#adr-sel').value=i; if(UI_READY) adrTL(i);
   const li=(arr,f)=>arr.length?'<div class="mini">'+arr.map(([k,v])=>`<span>${esc(f?f(k):k)}</span><span class="muted" style="font-family:var(--f-mono);font-size:12px">${v}</span>`).join('')+'</div>':'<p class="note">—</p>';
   card.innerHTML=`<div class="meta">${a.fam?esc(a.fam)+' · ':''}${a.y0}–${a.y1}</div><div class="ttl">${esc(a.nom)}</div>
   <div class="tiles"><div><b>${fmt(a.n)}</b><span>${plural(a.n,'письмо','письма','писем')}</span></div><div><b>${fmt(Math.round(a.w/a.n))}</b><span>слов в среднем</span></div><div><b>${fmt(a.cuts)}</b><span>купюр издателя</span></div></div>
@@ -285,7 +289,7 @@ $('#f-kunst').textContent = `В ${pn(LT.titles.length,'подписи','подп
 hbars($('#c-bran'), [{l:'письма',v:G2.letters.k23,c:'var(--s2)'},{l:'повествование',v:G2.narration.k23,c:'var(--neutral-bar)'},{l:'речь персонажей',v:G2.speech.k23,c:'var(--s1)'}], {labelW:140, fmtv:fmt1});
 hbars($('#c-branto'), SW.by_to.slice(0,12).map(([k,n,w,r])=>({l:cut(k,22),v:r,c:'var(--s2)',tip:`${esc(k)}: ${n} ${plural(n,'бранное слово','бранных слова','бранных слов')} на ${fmt(w)} слов`})), {labelW:170, fmtv:fmt1});
 const BW = SW.top.filter(([k])=>!['черт','чертовски','чертовый','чертик','чертов','чертовский','дьявол','окаянный','дьявольский'].includes(k)).slice(0,14);
-hbars($('#c-branw'), BW.map(([k,v])=>{ const e=SW.examples[k]; return {l:k,v,c:'var(--s1)',tip:e?`<b>${esc(k)}</b><br>«${esc(e.s)}»<br>${esc(e.to)}, ${e.y}`:k}; }), {labelW:110, fmtv:v=>fmt(v)});
+hbars($('#c-branw'), BW.map(([k,v])=>{ const e=SW.examples[k]; return {l:k,k,v,c:'var(--s1)',click:hasWord(k),tip:(e?`<b>${esc(k)}</b><br>«${esc(e.s)}»<br>${esc(e.to)}, ${e.y}`:k)+(hasWord(k)?'<br>нажмите — слово в словоискателе':'')}; }), {labelW:110, fmtv:v=>fmt(v), onClick:r=>openWord(r.k)});
 hbars($('#c-cuts'), LT.cuts.by_to.slice(0,10).map(([k,v])=>({l:cut(k.split(',')[0],22),v,c:'var(--c3)'})), {labelW:170, fmtv:v=>fmt(v)});
 $('#cutw').innerHTML = LT.cuts.inword.map(r=>`<span>${esc(r.w)}<small>${esc(r.to)}, ${r.y}</small></span>`).join('');
 const brFam = SW.by_to.find(r=>r[0]==='семье Чеховых'), brK = SW.by_to.find(r=>r[0]==='О. Л. Книппер');
@@ -327,7 +331,7 @@ $('#t-docst').textContent = 'Рассказы, где врач назван 3 р
 /* ================= VI. слова ================= */
 let sub='stories', posk='сущ';
 const SUBN={stories:'рассказы',plays:'пьесы (речь)',letters:'письма'};
-function drawTop(){ hbars($('#c-top'), W.top[sub][posk].slice(0,20).map(([k,v])=>({l:k,v,c:sub==='letters'?'var(--s2)':sub==='plays'?'var(--c3)':'var(--s1)'})), {labelW:130, fmtv:fmt1}); }
+function drawTop(){ hbars($('#c-top'), W.top[sub][posk].slice(0,20).map(([k,v])=>({l:k,k,v,c:sub==='letters'?'var(--s2)':sub==='plays'?'var(--c3)':'var(--s1)',click:hasWord(k),tip:`${esc(k)}: ${fmt1(v)} на 10 000 слов`+(hasWord(k)?'<br>нажмите — слово в словоискателе':'')})), {labelW:130, fmtv:fmt1, onClick:r=>openWord(r.k)}); }
 seg($('#sl-sub'), Object.entries(SUBN), sub, v=>{ sub=v; drawTop(); });
 seg($('#sl-pos'), [['сущ','существительные'],['глаг','глаголы'],['прил','прилагательные']], posk, v=>{ posk=v; drawTop(); }); drawTop();
 const tl=W.top.letters['сущ'].slice(0,4).map(r=>r[0]), ts=W.top.stories['сущ'].slice(0,4).map(r=>r[0]), tp=W.top.plays['прил'].slice(0,4).map(r=>r[0]);
@@ -350,8 +354,9 @@ legendTo($('#lg-ws'), [['рассказы','var(--s1)'],['письма','var(--s
 wsChips(WS_EX); wsShow(LEX['скука']?'скука':Object.keys(LEX)[0]);
 $('#ws-input').addEventListener('input',e=>{ const q=e.target.value; const ex=LEXN[norm(q)]; if(ex) wsShow(ex); else if(!q.trim()) wsChips(WS_EX); else wsChips(sugg(q)); });
 let epk='stories';
-function drawEp(){ $('#ep-grid').innerHTML = W.epochs[epk].map(([lab,rows])=>`<div class="era"><div class="h"><b>${lab}</b><span>${esc((PERIODS.find(p=>p[0]===lab)||[])[3]||'')}</span></div><ul class="wl">${rows.slice(0,14).map(r=>`<li><span>${esc(r[0])}</span><span style="font-family:var(--f-mono);font-size:11.5px;color:var(--muted);text-align:right">${r[2]} · ${pn(r[3],epk==='stories'?'рассказ':'письмо',epk==='stories'?'рассказа':'письма',epk==='stories'?'рассказов':'писем')}</span></li>`).join('')}</ul></div>`).join(''); }
-seg($('#sl-ep'), [['stories','рассказы'],['letters','письма']], epk, v=>{ epk=v; drawEp(); }); drawEp();
+function drawEp(){ $('#ep-grid').innerHTML = W.epochs[epk].map(([lab,rows])=>`<div class="era"><div class="h"><b>${lab}</b><span>${esc((PERIODS.find(p=>p[0]===lab)||[])[3]||'')}</span></div><ul class="wl">${rows.slice(0,14).map(r=>`<li>${hasWord(r[0])?`<button type="button" data-k="${esc(r[0])}" data-tip="открыть в словоискателе">${esc(r[0])}</button>`:`<span>${esc(r[0])}</span>`}<span style="font-family:var(--f-mono);font-size:11.5px;color:var(--muted);text-align:right">${r[2]} · ${pn(r[3],epk==='stories'?'рассказ':'письмо',epk==='stories'?'рассказа':'письма',epk==='stories'?'рассказов':'писем')}</span></li>`).join('')}</ul></div>`).join(''); }
+function bindEp(){ $('#ep-grid').querySelectorAll('button[data-k]').forEach(b=>b.addEventListener('click',()=>openWord(b.dataset.k))); }
+seg($('#sl-ep'), [['stories','рассказы'],['letters','письма']], epk, v=>{ epk=v; drawEp(); bindEp(); }); drawEp(); bindEp();
 const epw = i => W.epochs.stories[i][1].slice(0,4).map(r=>TQ(r[0])).join(', ');
 $('#f-epohi').textContent = `В 1880–1886 годах выделяются слова ${epw(0)}, в 1899–1904 — ${epw(3)}. От графов и поручиков юморески — к бабушкам и деревне.`;
 
@@ -383,7 +388,7 @@ $('#t-dengi').textContent = `Как считалось. Денежные сло�
 
 /* ================= VII. мир Чехова ================= */
 const WR = D.world, NW = WR.n_docs;
-function butterfly(box, rows, {labelW=120, rowH=20, swatch=null}={}){
+function butterfly(box, rows, {labelW=120, rowH=20, swatch=null, onRow=null}={}){
   return chart(()=>{ if(!rows.length){ box.innerHTML=''; return; } const h=rows.length*rowH+30; const [s,w]=svg(box,h); const narrow=w<560; const lw=narrow?90:labelW;
     const mid=(w+lw)/2+ (narrow?0:0), half=(w-lw)/2-30; const mx=niceMax(Math.max(...rows.map(r=>Math.max(r.a,r.b)),0.1));
     const xa=v=>mid-lw/2-half*v/mx, xb=v=>mid+lw/2+half*v/mx;
@@ -391,9 +396,11 @@ function butterfly(box, rows, {labelW=120, rowH=20, swatch=null}={}){
     txt(s,mid+lw/2+4,12,'письма',{style:'fill:var(--muted);font-size:11px;font-family:var(--f-mono)'});
     rows.forEach((r,i)=>{ const y=22+i*rowH, bh=rowH-7;
       if(swatch){ el('rect',{x:mid-lw/2+4,y:y+2,width:10,height:10,rx:2,fill:swatch(r.l),stroke:css('--ring')},s); }
-      txt(s,mid+(swatch?8:0),y+bh-1,cut(r.l,narrow?11:16),{'text-anchor':'middle',style:'font-family:var(--f-body);font-size:13px;fill:var(--ink)'});
-      el('rect',{x:xa(r.a),y,width:Math.max(.5,mid-lw/2-xa(r.a)),height:bh,rx:2,fill:css('--s1'),'data-tip':r.ta},s);
-      el('rect',{x:mid+lw/2,y,width:Math.max(.5,xb(r.b)-mid-lw/2),height:bh,rx:2,fill:css('--s2'),'data-tip':r.tb},s);
+      const clk=onRow&&r.key&&hasWord(r.key); const tl=txt(s,mid+(swatch?8:0),y+bh-1,cut(r.l,narrow?11:16),{'text-anchor':'middle',style:'font-family:var(--f-body);font-size:13px;fill:var(--ink)'+(clk?';text-decoration:underline dotted':'')});
+      const ra=el('rect',{x:xa(r.a),y,width:Math.max(.5,mid-lw/2-xa(r.a)),height:bh,rx:2,fill:css('--s1'),'data-tip':r.ta+(clk?'<br>нажмите — слово в словоискателе':'')},s);
+      const rb=el('rect',{x:mid+lw/2,y,width:Math.max(.5,xb(r.b)-mid-lw/2),height:bh,rx:2,fill:css('--s2'),'data-tip':r.tb+(clk?'<br>нажмите — слово в словоискателе':'')},s);
+      if(clk){ const hl=el('rect',{class:'hit clickable',x:mid-lw/2,y:y-2,width:lw,height:rowH,tabindex:0,role:'button','aria-label':r.l,'data-tip':`${esc(r.l)}<br>нажмите — слово в словоискателе`},s);
+        [ra,rb,hl].forEach(n=>{ n.classList.add('clickable'); n.addEventListener('click',()=>onRow(r)); }); hl.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); onRow(r);} }); }
       txt(s,xa(r.a)-4,y+bh-2,fmt1(r.a),{'text-anchor':'end',style:'font-size:10.5px;fill:var(--ink-2)'});
       txt(s,xb(r.b)+4,y+bh-2,fmt1(r.b),{style:'font-size:10.5px;fill:var(--ink-2)'}); });
   }, box);
@@ -404,35 +411,31 @@ function shelfRows(name, n=18){ return WR.shelves[name].slice(0,n).map(r=>{ cons
   return {l:yo(r.w), key:r.w, a:100*r.works[0]/NW.works, b:100*r.letters[0]/NW.letters,
     ta:`<b>${esc(yo(r.w))}</b>: ${r.works[0]} из ${NW.works} рассказов и пьес (${r.works[1]} раз)${ex(r.ex_works)}`,
     tb:`<b>${esc(yo(r.w))}</b>: ${r.letters[0]} из ${NW.letters} писем (${r.letters[1]} раз)${ex(r.ex_letters)}`}; }); }
-const PL_ = WR.people_letters;
-legendTo($('#lg-lyudi'), [['фамилия есть среди адресатов','var(--s2)'],['среди адресатов нет','var(--neutral-bar)']]);
-hbars($('#c-lyudi'), PL_.slice(0,40).map(([k,n,adr])=>({l:k,v:n,c:adr?'var(--s2)':'var(--neutral-bar)',tip:`${esc(k)}: в ${pn(n,'письме','письмах','письмах')}${adr?' · такая фамилия есть среди адресатов':''}`})), {labelW:170, fmtv:v=>fmt(v), rowH:22});
-const classics = ['Пушкин','Тургенев','Гоголь','Островский','Лесков','Шекспир','Достоевский','Гаршин'].filter(k=>PL_.some(r=>r[0]===k)).map(k=>PL_.find(r=>r[0]===k)).sort((x,y)=>y[1]-x[1]);
-$('#f-lyudi').textContent = `Чаще всех в письмах назван ${PL_[0][0]} — в ${pn(PL_[0][1],'письме','письмах','письмах')}; за ним ${PL_.slice(1,6).map(r=>`${r[0]} (${r[1]})`).join(', ')}. Из писателей прошлого чаще других — ${classics.slice(0,4).map(r=>`${r[0]} (${r[1]})`).join(', ')}.`;
-hbars($('#c-nm'), WR.names_works.m.slice(0,18).map(([k,n])=>({l:k,v:n,c:'var(--s2)'})), {labelW:110, fmtv:v=>fmt(v), rowH:21});
-hbars($('#c-nf'), WR.names_works.f.filter((r,i,a)=>a.findIndex(x=>x[0]===r[0])===i).slice(0,18).map(([k,n])=>({l:k,v:n,c:'var(--s1)'})), {labelW:110, fmtv:v=>fmt(v), rowH:21});
+hbars($('#c-nm'), WR.names_works.m.slice(0,18).map(([k,n])=>({l:k,k,v:n,c:'var(--s2)',click:!!EX.heroes[k],tip:`${esc(k)}: ${pn(n,'текст','текста','текстов')}`+(EX.heroes[k]?'<br>нажмите — карточка имени':'')})), {labelW:110, fmtv:v=>fmt(v), rowH:21, onClick:r=>heroShow(r.k,true)});
+hbars($('#c-nf'), WR.names_works.f.filter((r,i,a)=>a.findIndex(x=>x[0]===r[0])===i).slice(0,18).map(([k,n])=>({l:k,k,v:n,c:'var(--s1)',click:!!EX.heroes[k],tip:`${esc(k)}: ${pn(n,'текст','текста','текстов')}`+(EX.heroes[k]?'<br>нажмите — карточка имени':'')})), {labelW:110, fmtv:v=>fmt(v), rowH:21, onClick:r=>heroShow(r.k,true)});
 $('#namepatr').innerHTML = WR.name_patr.slice(0,24).map(([k,n])=>`<span>${esc(k)}<small>${n}</small></span>`).join('');
 $('#f-geroi').textContent = `Самый частый герой — Иван: ${pn(WR.names_works.m[0][1],'текст','текста','текстов')}; самая частая героиня — ${WR.names_works.f[0][0]} (${WR.names_works.f[0][1]}). «${WR.name_patr[0][0]}» встречается в ${WR.name_patr[0][1]} текстах.`;
 hbars($('#c-mw'), WR.places.works.slice(0,20).map(([k,n])=>({l:k,v:100*n/NW.works,c:'var(--s1)',tip:`${esc(k)}: ${n} текстов`})), {labelW:120, fmtv:fmt1, rowH:21});
 hbars($('#c-ml'), WR.places.letters.slice(0,20).map(([k,n])=>({l:k,v:100*n/NW.letters,c:'var(--s2)',tip:`${esc(k)}: ${n} писем`})), {labelW:150, fmtv:fmt1, rowH:21});
 const pw=WR.places.works, plx=WR.places.letters;
 $('#f-mesta').textContent = `В рассказах и пьесах мир — это ${pw.slice(0,3).map(r=>r[0]).join(', ')} и ${pw[3][0]}; в письмах — ${plx.slice(0,3).map(r=>r[0]).join(', ')}. ${plx.find(r=>r[0]==='Сахалин')?`Сахалин назван в ${pn(plx.find(r=>r[0]==='Сахалин')[1],'письме','письмах','письмах')}${pw.some(r=>r[0]==='Сахалин')?'':', а среди 40 самых частых мест рассказов и пьес его нет'}.`:''}`;
-butterfly($('#c-zv'), shelfRows('Звери и птицы',22));
+butterfly($('#c-zv'), shelfRows('Звери и птицы',22), {onRow:r=>openWord(r.key)});
 $('#pets').innerHTML = WR.pets.filter(p=>p.n>0).map(p=>`<article><div class="sig">${esc(p.name)}</div><div class="who">${esc(p.who)} · ${esc(p.where)}${p.years?' · '+(p.years[0]===p.years[1]?p.years[0]:p.years[0]+'–'+p.years[1]):''}${p.where==='письма'?' · '+pn(p.docs,'письмо','письма','писем'):''}</div>${p.note?`<div class="who" style="font-family:var(--f-body);font-size:13.5px;color:var(--ink-2)">${esc(p.note)}</div>`:''}</article>`).join('');
 const zv=WR.shelves['Звери и птицы'];
 $('#f-zveri').textContent = `Больше всего в прозе лошадей и собак, в письмах — собак (${zv.find(r=>r.w==='собака').letters[0]} писем). В письмах Книппер «собака» — ласковое обращение: «милая собака», «собака моя» — ${pn(WR.knipper_dog,'раз','раза','раз')}. Свои собаки у Чехова тоже с именами: таксы Бром и Хина, мелиховские Шарик и Арапка, щенки Мюр и Мерилиз.`;
-butterfly($('#c-food'), shelfRows('Еда',18));
-butterfly($('#c-drink'), shelfRows('Напитки',18));
+butterfly($('#c-food'), shelfRows('Еда',18), {onRow:r=>openWord(r.key)});
+butterfly($('#c-drink'), shelfRows('Напитки',18), {onRow:r=>openWord(r.key)});
 const dr=WR.shelves['Напитки'], dw=n=>dr.find(r=>r.w===n)||{works:[0],letters:[0]};
 $('#f-eda').textContent = `В рассказах пьют водку (${dw('водка').works[0]} текстов) и чай (${dw('чай').works[0]}), в письмах — вино (${dw('вино').letters[0]} писем) и чай (${dw('чай').letters[0]}). Кумыс почти не встречается в прозе, но есть в ${dw('кумыс').letters[0]} письмах — это лечение.`;
-butterfly($('#c-sadw'), shelfRows('Сад и лес',18));
-butterfly($('#c-tr'), shelfRows('Транспорт',18));
+butterfly($('#c-sadw'), shelfRows('Сад и лес',18), {onRow:r=>openWord(r.key)});
+butterfly($('#c-tr'), shelfRows('Транспорт',18), {onRow:r=>openWord(r.key)});
 const sd=WR.shelves['Сад и лес'], sw_=n=>sd.find(r=>r.w===n)||{works:[0],letters:[0]}; const tr=WR.shelves['Транспорт'], tw=n=>tr.find(r=>r.w===n)||{works:[0],letters:[0]};
 $('#f-sad').textContent = `Сад назван в ${pn(sw_('сад').works[0],'рассказе','рассказах','рассказах')} и пьесах (${Math.round(100*sw_('сад').works[0]/NW.works)}% произведений) и в ${pn(sw_('сад').letters[0],'письме','письмах','письмах')}. В прозе ездят на извозчике (${tw('извозчик').works[0]} текстов) и в санях (${tw('сани').works[0]}), в письмах — на пароходе (${tw('пароход').letters[0]} писем) и поездом, с вокзала и со станции.`;
 const COLHEX={'белый':'#f4f1ea','черный':'#1d1a17','красный':'#c43a2c','синий':'#2c4f9e','голубой':'#79aee0','зеленый':'#3f8a3c','желтый':'#e3c23a','серый':'#8c8a86','розовый':'#e8a0b4','лиловый':'#9a6bb3','коричневый':'#7a4e2c','бурый':'#6d4a2e','рыжий':'#c96a2b','золотой':'#c9a227','серебряный':'#c0c3c7','багровый':'#8e1f1f','алый':'#e2362e','фиолетовый':'#6b3fa0','оранжевый':'#ef8a2b','малиновый':'#b0194f','сиреневый':'#c3a2d8','седой':'#d9d6d0','пестрый':'#a58a5d','бледный':'#e9e1cf','румяный':'#e59a86','смуглый':'#a67750','вишневый':'#7b1e2b','пурпуровый':'#7d1e5a'};
-butterfly($('#c-col'), shelfRows('Цвета',20), {swatch:k=>COLHEX[Object.keys(YO).find(x=>YO[x]===k)||k]||css('--neutral-bar'), labelW:150});
+butterfly($('#c-col'), shelfRows('Цвета',20), {onRow:r=>openWord(r.key), swatch:k=>COLHEX[Object.keys(YO).find(x=>YO[x]===k)||k]||css('--neutral-bar'), labelW:150});
 const C8 = WR.shelves['Цвета'].slice(0,8);
-legendTo($('#lg-colper'), C8.map(r=>[yo(r.w),COLHEX[r.w]||'#999']));
+$('#lg-colper').innerHTML=C8.map(r=>hasWord(r.w)?`<span><button type="button" class="lnk plain" data-k="${esc(r.w)}" data-tip="открыть в словоискателе"><i style="background:${COLHEX[r.w]||'#999'}"></i>${esc(yo(r.w))}</button></span>`:`<span><i style="background:${COLHEX[r.w]||'#999'}"></i>${esc(yo(r.w))}</span>`).join('');
+$('#lg-colper').querySelectorAll('button[data-k]').forEach(b=>b.addEventListener('click',()=>openWord(b.dataset.k)));
 chart(()=>{ const box=$('#c-colper'); const h=230; const [s,w]=svg(box,h); const L=36,R=10,T=12,B=26; const per=PERIODS.map(p=>p[0]);
   const vals=C8.map(r=>r.per.map((n,i)=>1e4*n/WR.per_words[i])); const mx=niceMax(Math.max(...vals.flat()));
   const sx=i=>L+(w-L-R)*(i+.5)/per.length, sy=v=>h-B-(h-B-T)*v/mx; const ax=el('g',{class:'ax'},s);
@@ -442,7 +445,7 @@ chart(()=>{ const box=$('#c-colper'); const h=230; const [s,w]=svg(box,h); const
     vals[k].forEach((v,i)=>el('circle',{cx:sx(i),cy:sy(v),r:4,fill:col,stroke:css('--ink-2'),'stroke-width':.8,'data-tip':`«${yo(r.w)}», ${per[i]}: ${fmt1(v)} на 10 000 слов`},s)); });
   el('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:css('--axis')},s); }, $('#c-colper'));
 const col=WR.shelves['Цвета'];
-$('#f-cveta').textContent = `Главные цвета прозы — ${col.slice(0,4).map(r=>'«'+yo(r.w)+'»').join(', ')}; «бледный» — в ${col.find(r=>r.w==='бледный').works[0]} рассказах и пьесах. В письмах выделяются «пёстрый» (${(col.find(r=>r.w==='пестрый')||{letters:[0]}).letters[0]}) и «вишнёвый»: из ${pn(WR.cherry.play+WR.cherry.other,'письма','писем','писем')} с этим словом в ${WR.cherry.play} речь о пьесе «Вишнёвый сад».`;
+$('#f-cveta').textContent = `Главные цвета прозы — ${col.filter(r=>r.w!=='бледный').slice(0,3).map(r=>'«'+yo(r.w)+'»').join(', ')}; рядом с ними — «бледный» (${col.find(r=>r.w==='бледный').works[0]} рассказов и пьес). В письмах выделяются «пёстрый» (${(col.find(r=>r.w==='пестрый')||{letters:[0]}).letters[0]}) и «вишнёвый»: из ${pn(WR.cherry.play+WR.cherry.other,'письма','писем','писем')} с этим словом в ${WR.cherry.play} речь о пьесе «Вишнёвый сад».`;
 
 /* ================= VIII. рекорды, корпус, методика ================= */
 const longest = SA.reduce((a,b)=>b.w>a.w?b:a), shortest = SA.filter(a=>!a.unf).reduce((a,b)=>b.w<a.w?b:a);

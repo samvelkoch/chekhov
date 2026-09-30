@@ -1,5 +1,5 @@
 """Собирает самодостаточный HTML «Чехов на просвет»: оформление серии (report.head.html), разметка (report.body.html),
-данные (stats.json), ядро графиков (report.lib.js), отчёт (report.app.js), навигация (report.chrome.js).
+данные (stats.json, explore.json), ядро графиков (report.lib.js), отчёт (report.app.js), интерактив (report.ui.js), навигация (report.chrome.js).
 Запуск: python build_report.py [out.html]"""
 import sys
 from pathlib import Path
@@ -10,8 +10,10 @@ safe = lambda s: s.replace("</", "<\\/")
 r = lambda n: (HERE / n).read_text(encoding="utf-8")
 page = (r("report.head.html") + "\n" + r("report.body.html") + "\n"
         + '<script type="application/json" id="data-stats">' + safe(r("stats.json")) + "</script>\n"
+        + '<script type="application/json" id="data-explore">' + safe(r("explore.json")) + "</script>\n"
         + "<script>\nconst D = JSON.parse(document.getElementById('data-stats').textContent);\n"
-        + r("report.lib.js") + "\n" + r("report.app.js") + "\n" + r("report.chrome.js") + "\n</script>\n")
+        + "const EX = JSON.parse(document.getElementById('data-explore').textContent);\n"
+        + r("report.lib.js") + "\n" + r("report.app.js") + "\n" + r("report.ui.js") + "\n" + r("report.chrome.js") + "\n</script>\n")
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(page, encoding="utf-8")
 print(out, round(out.stat().st_size / 1024), "KB")
