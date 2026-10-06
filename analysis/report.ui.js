@@ -67,7 +67,7 @@ const wmGroupLabel = c => EX.wgroups[c].slice(0,2).join(' · ');
 const wmRising = (m,p) => p>=0 && wmCount(m,p)>=6 && wmRate(m,p)/Math.max(wmRate(m,-1),1e-9)>=1.5;
 const wmTop = (p,n=7) => WMD.filter(m=>wmRising(m,p)).sort((a,b)=>wmRate(b,p)/wmRate(b,-1)-wmRate(a,p)/wmRate(a,-1)).slice(0,n);
 const wmTerrOp = () => lum(css('--surface'))<0.2?.2:.34;
-$('#t-karta').textContent = `${WMD.length} самых частых слов рассказов и пьес разложены на карте так, что рядом оказываются слова, которые Чехов ставит в похожее окружение (расстановка — метод t-SNE по окружению слов). Цветные области — группы слов. Выберите период или нажмите «Играть»: слова, характерные для периода, вырастут и покраснеют. Нажмите на слово, чтобы увидеть его ближайших соседей, а «Открыть в словоискателе» — чтобы узнать о нём всё. Размеры и числа — по рассказам.`;
+$('#t-karta').textContent = `${pnr(WMD.length,['самое частое слово рассказов и пьес разложено','самых частых слова рассказов и пьес разложены','самых частых слов рассказов и пьес разложены'])} на карте так, что рядом оказываются слова, которые Чехов ставит в похожее окружение (расстановка — метод t-SNE по окружению слов). Цветные области — группы слов. Выберите период или нажмите «Играть»: слова, характерные для периода, вырастут и покраснеют. Нажмите на слово, чтобы увидеть его ближайших соседей, а «Открыть в словоискателе» — чтобы узнать о нём всё. Размеры и числа — по рассказам.`;
 function drawWmap(){
   const box=$('#c-wmap'); const Wd=box.clientWidth||800; const h=Wd<600?Math.round(Wd*1.3):Math.round(Math.min(720,Math.max(460,Wd*0.66))); const [s,w]=svg(box,h);
   const M=WMD; const xs=M.map(m=>m.x), ys=M.map(m=>m.y); const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
@@ -104,7 +104,7 @@ function wmApply(){
   const inGroup=m=>WM.group<0||m.c===WM.group;
   items.forEach(it=>{ const m=it.o.m; const dim=(WM.group>=0&&!inGroup(m))||(focus&&m.k!==focus&&!nb.has(m.k));
     const absent=it.cnt===0; const isF=m.k===focus; const isN=nb.has(m.k);
-    const tip=`${esc(m.w)}<br>${fmt(it.cnt)} ${plural(it.cnt,'раз','раза','раз')} в рассказах${p>=0?', '+PER[p]:''}<br>нажмите, чтобы увидеть близкие слова`;
+    const tip=`${esc(m.w)}<br>${fmt(it.cnt)} ${plural(it.cnt, ['раз', 'раза', 'раз'])} в рассказах${p>=0?', '+PER[p]:''}<br>нажмите, чтобы увидеть близкие слова`;
     const ink=isF||isN||it.rise?'--mark':(dim?'--muted':'--ink');
     it.o.t.setAttribute('data-tip',tip); it.o.c.setAttribute('data-tip',tip);
     const st=it.o.t.style; st.fontSize=it.fs.toFixed(1)+'px'; st.fill=css(ink); st.fontWeight=(isF||it.rise)?'700':'400';
@@ -126,7 +126,7 @@ function wmReadout(){ const host=$('#wm-read'); const p=WM.per, k=WM.sel;
   const link=kk=>`<button type="button" class="chip" data-wk="${esc(kk)}">${esc(yo(kk))}</button>`;
   let html;
   if(k){ const m=WMK[k]; const nbs=(EX.neighbors[k]||[]).filter(x=>WMK[x]);
-    html=`<b>${esc(m.w)}</b> — ${fmt(wmCount(m,-1))} ${plural(wmCount(m,-1),'раз','раза','раз')} в рассказах; по периодам: ${PER.map((pp,i)=>`${pp}: ${fmt(wmCount(m,i))}`).join(', ')}.<br>Близкие по употреблению (линии на карте): ${nbs.map(link).join(' ')||'—'} <button type="button" class="btn" data-open="${esc(k)}">Открыть в словоискателе →</button>`;
+    html=`<b>${esc(m.w)}</b> — ${fmt(wmCount(m,-1))} ${plural(wmCount(m,-1), ['раз', 'раза', 'раз'])} в рассказах; по периодам: ${PER.map((pp,i)=>`${pp}: ${fmt(wmCount(m,i))}`).join(', ')}.<br>Близкие по употреблению (линии на карте): ${nbs.map(link).join(' ')||'—'} <button type="button" class="btn" data-open="${esc(k)}">Открыть в словоискателе →</button>`;
   } else if(p>=0){ const top=wmTop(p);
     html=`<b>${esc(PER[p])}.</b> Красным выделены слова, которых в эти годы заметно больше, чем в среднем по всем рассказам (не реже чем в 1,5 раза, не меньше 6 употреблений): ${top.map(m=>link(m.k)).join(' ')||'—'}`;
   } else html=`Размер слова — как часто оно встречается в рассказах; цветная область — группа слов, которые Чехов ставит в похожее окружение. Выберите период или нажмите «Играть», чтобы увидеть, как менялся словарь, и нажмите на слово, чтобы увидеть его ближайших соседей.`;
@@ -153,12 +153,12 @@ const TH = EX.themes, THN = Object.keys(TH);
 const TH_S = {kind:'works', sort:'ord', sel:THN[0]};
 const thChg = (t,kind) => { const a=TH[t][kind]; const pr=mean(a.slice(0,NPER-1)); return pr>0 ? a[NPER-1]/pr-1 : null; };
 const THK = {works:'рассказы и пьесы', letters:'письма'};
-$('#t-temy').textContent = `${pn(THN.length,'тема','темы','тем')}: каждая — список слов, общих для рассказов, пьес и писем. В клетке — сколько раз слова темы встречаются на 1000 слов текстов периода. Цвет считается внутри строки: чем темнее, тем чаще для самой этой темы, поэтому цвета разных тем не сравниваются — сравнивайте цифры. Нажмите на тему, чтобы увидеть её слова и тексты, где она звучит громче всего.`;
+$('#t-temy').textContent = `${pn(THN.length, ['тема', 'темы', 'тем'])}: каждая — список слов, общих для рассказов, пьес и писем. В клетке — сколько раз слова темы встречаются на 1000 слов текстов периода. Цвет считается внутри строки: чем темнее, тем чаще для самой этой темы, поэтому цвета разных тем не сравниваются — сравнивайте цифры. Нажмите на тему, чтобы увидеть её слова и тексты, где она звучит громче всего.`;
 function thVerdict(){ const k=TH_S.kind; const L=THN.map(t=>({t,c:thChg(t,k)})).filter(r=>r.c!=null);
   const up=L.filter(r=>r.c>0).sort((a,b)=>b.c-a.c).slice(0,3), dn=L.filter(r=>r.c<0).sort((a,b)=>a.c-b.c).slice(0,3);
   const f=r=>`«${r.t}» (${sgnPct(r.c)})`;
   $('#f-temy').textContent = `${k==='works'?'В рассказах и пьесах':'В письмах'} последний период (${PER[NPER-1]}), сравнённый со средним по трём прежним, звучит громче в темах ${up.map(f).join(', ')||'—'}; тише — ${dn.map(f).join(', ')||'—'}.`;
-  $('#u-temy').textContent = `на 1000 слов; ${THK[k]}${k==='letters'?`. Письма ${PER[0]} — всего ${fmt(PW_L[0])} слов: цифры за этот период шаткие`:''}`; }
+  $('#u-temy').textContent = `на 1000 слов; ${THK[k]}${k==='letters'?`. Письма ${PER[0]} — всего ${pn(PW_L[0],['слово','слова','слов'])}: цифры за этот период шаткие`:''}`; }
 function drawThemes(){ thVerdict();
   const k=TH_S.kind; let ord=THN.slice(); if(TH_S.sort==='chg') ord.sort((a,b)=>(thChg(b,k)??-9)-(thChg(a,k)??-9));
   chart(()=>{ const box=$('#c-temy'); const cellH=30, topH=30; const h=topH+ord.length*cellH+4; const [s,w]=svg(box,h); const narrow=w<560; const lw=narrow?112:180, chW=narrow?64:92; const cw=(w-lw-chW)/NPER;
@@ -186,7 +186,7 @@ function thCard(){ const t=TH_S.sel, d=TH[t]; const host=$('#th-card');
     wr.map(([w,a,b])=>`<span>${hasWord(w)?`<button type="button" data-k="${esc(w)}" data-tip="открыть в словоискателе">${esc(yo(w))}</button>`:esc(yo(w))}</span><span class="n">${fmt(a)}</span><span class="n">${fmt(b)}</span>`).join('')}</div>
     <h4>Где тема звучит громче всего</h4><div class="mini3"><span class="h" style="text-align:left">текст</span><span class="h">год</span><span class="h">на 1000 слов</span>${
     d.loud.map(([tt,y,v])=>`<span>${textBtn(tt,y)}</span><span class="n">${y}</span><span class="n">${fmt1(v)}</span>`).join('')}</div>`;
-  entityCard(host,{eyebrow:'Тема',title:t,meta:`${pn(d.words.length,'слово','слова','слов')} в списке`,
+  entityCard(host,{eyebrow:'Тема',title:t,meta:`${pn(d.words.length, ['слово', 'слова', 'слов'])} в списке`,
     tiles:[[fmt1(d.works[NPER-1]),`на 1000 слов рассказов и пьес, ${PER[NPER-1]}`],[fmt1(d.letters[NPER-1]),`на 1000 слов писем, ${PER[NPER-1]}`],[cw_==null?'—':sgnPct(cw_),'рассказы и пьесы: последний период к среднему прежних']],
     sparks:`<h4>Рассказы и пьесы, на 1000 слов</h4>${sp(d.works,'var(--s1)')}<h4>Письма, на 1000 слов (в ${PER[0]} слов мало: ${fmt(PW_L[0])})</h4>${sp(d.letters,'var(--s2)')}`,body}); }
 seg($('#sl-th'), Object.entries(THK), TH_S.kind, v=>{ TH_S.kind=v; drawThemes(); });
@@ -199,8 +199,8 @@ const NT = {per:-1, cl:-1, sel:null, hov:null, N:null};
 const ntCount = n => NT.per>=0 ? n.per[NT.per] : n.n;
 const clCol = c => c<0 ? css('--neutral-bar') : css('--g'+(c+1));
 (function(){ const top=NN.slice().sort((a,b)=>b.n-a.n); const E=NE.slice().sort((a,b)=>b[2]-a[2])[0]; const big=NC.slice().sort((a,b)=>b.n-a.n)[0];
-  $('#t-net').textContent = `Люди, которых Чехов называет в письмах по фамилии. В сеть входят ${pn(NN.length,'имя','имени','имён')}. Размер кружка — в скольких письмах назван человек; линия — два имени названы в одном абзаце письма; цвет — круг имён, которые чаще встречаются вместе. Выберите период или круг, найдите человека по имени — справа откроется карточка.`;
-  $('#f-lyudi').textContent = `Чаще всех в письмах назван ${top[0].name} — в ${pn(top[0].n,'письме','письмах','письмах')}; за ним ${top.slice(1,6).map(r=>`${r.name} (${r.n})`).join(', ')}. Имена собираются в ${pn(NC.length,'круг','круга','кругов')}; самый большой — ${big.names.join(', ')} и ещё ${pn(big.n-big.names.length,'имя','имени','имён')}. Ближе всего друг к другу стоят ${NN[E[0]].name} и ${NN[E[1]].name}: они названы вместе в ${pn(E[2],'абзаце','абзацах','абзацах')}.`; })();
+  $('#t-net').textContent = `Люди, которых Чехов называет в письмах по фамилии. В сеть входят ${pn(NN.length, ['имя', 'имени', 'имён'])}. Размер кружка — в скольких письмах назван человек; линия — два имени названы в одном абзаце письма; цвет — круг имён, которые чаще встречаются вместе. Выберите период или круг, найдите человека по имени — справа откроется карточка.`;
+  $('#f-lyudi').textContent = `Чаще всех в письмах назван ${top[0].name} — в ${pn(top[0].n, ['письме', 'письмах', 'письмах'])}; за ним ${top.slice(1,6).map(r=>`${r.name} (${r.n})`).join(', ')}. Имена собираются в ${pn(NC.length, ['круг', 'круга', 'кругов'])}; самый большой — ${big.names.join(', ')} и ещё ${pn(big.n-big.names.length, ['имя', 'имени', 'имён'])}. Ближе всего друг к другу стоят ${NN[E[0]].name} и ${NN[E[1]].name}: они названы вместе в ${pn(E[2], ['абзаце', 'абзацах', 'абзацах'])}.`; })();
 periodBtns($('#pp-per'),NT.per,i=>{ NT.per=i; ntApply(); });
 (function(){ const g=$('#pp-clusters'); const mk=(i,l)=>{ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.setAttribute('aria-pressed',String(i===NT.cl));
   b.innerHTML=(i>=0?`<i style="background:var(--g${i+1})"></i>`:'')+esc(l); b.addEventListener('click',()=>{ NT.cl=(NT.cl===i&&i>=0)?-1:i; ntApply(); }); g.appendChild(b); };
@@ -231,7 +231,7 @@ function ntApply(){
       const r=on?3.5+10*Math.sqrt(cnt[i]/mx):3; o.r=r;
       o.c.setAttribute('r',r.toFixed(1)); o.c.setAttribute('fill',clCol(o.n.cl)); o.c.setAttribute('stroke-width',i===NT.sel?3:1.5);
       o.c.style.opacity=on?(dim?.18:.92):.1; o.c.style.stroke=i===foc?css('--ink'):css('--surface');
-      o.c.setAttribute('data-tip',`<b>${esc(o.n.name)}</b><br>${NT.per>=0?PER[NT.per]+': ':''}в ${pn(cnt[i],'письме','письмах','письмах')}${NT.per>=0?'':', '+pn(o.n.np,'абзац','абзаца','абзацев')}<br>нажмите, чтобы открыть карточку`); });
+      o.c.setAttribute('data-tip',`<b>${esc(o.n.name)}</b><br>${NT.per>=0?PER[NT.per]+': ':''}в ${pn(cnt[i], ['письме', 'письмах', 'письмах'])}${NT.per>=0?'':', '+pn(o.n.np, ['абзац', 'абзаца', 'абзацев'])}<br>нажмите, чтобы открыть карточку`); });
     order.forEach(i=>{ const o=nodes[i]; const on=cnt[i]>0&&(NT.cl<0||o.n.cl===NT.cl); const forced=i===foc||nb.has(i);
       const fs=12, bw=o.n.name.length*fs*0.56+6, bx={x:o.X-bw/2,y:o.Y-o.r-fs-4,w:bw,h:fs+3}; const show=on&&(forced||(cnt[i]>=2&&fit(bx)));
       if(show) placed.push(bx); o.t.setAttribute('y',(o.Y-o.r-4).toFixed(1)); o.t.style.opacity=show?((foc!=null&&!forced)?.25:1):0; o.t.style.fontWeight=i===foc?'700':'400'; });
@@ -248,11 +248,11 @@ function ntCard(){
   const nbs=(n.nb||[]).map(([j,w])=>({label:`${NN[j].name} · ${w}`,fn:()=>{ NT.sel=j; ntApply(); }}));
   const yrs=n.y0===n.y1?String(n.y0):`${n.y0}–${n.y1}`;
   const rates=n.per.map((v,i)=>PW_L[i]?1e4*v/PW_L[i]:0); const peak=rates.indexOf(Math.max(...rates));
-  const tiles=[[fmt(n.n),plural(n.n,'письмо с упоминанием','письма с упоминанием','писем с упоминанием')],[fmt(n.np),plural(n.np,'абзац','абзаца','абзацев')],[yrs,'годы упоминаний']];
+  const tiles=[[fmt(n.n),plural(n.n, ['письмо с упоминанием', 'письма с упоминанием', 'писем с упоминанием'])],[fmt(n.np),plural(n.np, ['абзац', 'абзаца', 'абзацев'])],[yrs,'годы упоминаний']];
   tiles.push(n.wrote>0?[fmt(n.wrote),'писал ему/ей писем']:[fmt((n.nb||[]).length),'ближайших имён']);
   tiles.push([pshort(PER[peak]),'чаще всего — в этом периоде'],[n.adr?'есть':'нет','такая фамилия среди адресатов']);
   entityCard(host,{eyebrow:'Карточка',title:n.name,meta:`круг: ${esc(NC[n.cl].names.join(' · '))}`,tiles,
-    sparks:`<h4>Писем с упоминанием на 10 000 слов писем</h4>${sparkSVG(rates,{tips:rates.map((v,i)=>`${PER[i]}: ${pn(n.per[i],'письмо','письма','писем')} (${fmt1(v)} на 10 000 слов писем)`)})}`,
+    sparks:`<h4>Писем с упоминанием на 10 000 слов писем</h4>${sparkSVG(rates,{tips:rates.map((v,i)=>`${PER[i]}: ${pn(n.per[i], ['письмо', 'письма', 'писем'])} (${fmt1(v)} на 10 000 слов писем)`)})}`,
     chips:nbs,chipsTitle:'Чаще всего рядом (общих абзацев)',body:`<h4>Из писем</h4>${quotesHTML(n.ctx,n.name,'letter')}`}); }
 function ntSelectByName(name){ const i=NN.findIndex(n=>n.name===name); if(i>=0){ NT.sel=i; ntApply(); } }
 (function(){ const inp=$('#pp-find'), sug=$('#pp-sug');
@@ -262,7 +262,7 @@ function ntSelectByName(name){ const i=NN.findIndex(n=>n.name===name); if(i>=0){
   inp.addEventListener('input',upd); inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ const q=norm(inp.value); const m=NN.find(x=>norm(x.name).startsWith(q)); if(m){ ntSelectByName(m.name); sug.innerHTML=''; } } }); })();
 chart(drawNet,$('#c-net'));
 legendTo($('#lg-lyudi'), [['фамилия есть среди адресатов','var(--s2)'],['среди адресатов нет','var(--neutral-bar)']]);
-hbars($('#c-lyudi'), NN.slice().sort((a,b)=>b.n-a.n).slice(0,40).map(n=>({l:n.name,k:n.name,v:n.n,c:n.adr?'var(--s2)':'var(--neutral-bar)',tip:`${esc(n.name)}: в ${pn(n.n,'письме','письмах','письмах')}${n.adr?' · такая фамилия есть среди адресатов':''}<br>нажмите — карточка в сети`})),
+hbars($('#c-lyudi'), NN.slice().sort((a,b)=>b.n-a.n).slice(0,40).map(n=>({l:n.name,k:n.name,v:n.n,c:n.adr?'var(--s2)':'var(--neutral-bar)',tip:`${esc(n.name)}: в ${pn(n.n, ['письме', 'письмах', 'письмах'])}${n.adr?' · такая фамилия есть среди адресатов':''}<br>нажмите — карточка в сети`})),
   {labelW:170, fmtv:fmt, rowH:22, onClick:r=>{ ntSelectByName(r.k); goTo('net-wrap'); }});
 
 /* ================= VII.2 имена героев ================= */
@@ -271,9 +271,9 @@ const TXP = PERIODS.map(([l,a,b])=>A.filter(s=>s.y>=a&&s.y<=b).length+PS.filter(
 function heroShow(name,scroll){ const h=HERO[name]; if(!h) return; const card=$('#hero-card');
   const rates=h.per.map((v,i)=>TXP[i]?100*v/TXP[i]:0); const peak=rates.indexOf(Math.max(...rates)); const top=h.texts[0];
   const rows=h.texts.map(([t,y,k])=>`<span>${textBtn(t,y)}</span><span class="n">${y}</span><span class="n">${fmt(k)}</span>`).join('');
-  entityCard(card,{eyebrow:h.g==='f'?'Женское имя':'Мужское имя',title:name,meta:`${pn(h.n,'рассказ или пьеса','рассказа или пьесы','рассказов и пьес')} из ${fmt(NW.works)}`,
-    tiles:[[fmt(h.n),plural(h.n,'текст','текста','текстов')],[top?fmt(top[2]):'—',top?`раз в ${TQ(top[0])}`:'раз'],[pshort(PER[peak]),'в этом периоде имя встречается чаще всего']],
-    sparks:`<h4>В скольких текстах периода — % рассказов и пьес</h4>${sparkSVG(rates,{unit:'%',dec:0,tips:rates.map((v,i)=>`${PER[i]}: ${h.per[i]} из ${TXP[i]} текстов (${fmt1(v)}%)`)})}`,
+  entityCard(card,{eyebrow:h.g==='f'?'Женское имя':'Мужское имя',title:name,meta:`${pn(h.n, ['рассказ или пьеса', 'рассказа или пьесы', 'рассказов и пьес'])} из ${fmt(NW.works)}`,
+    tiles:[[fmt(h.n),plural(h.n, ['текст', 'текста', 'текстов'])],[top?fmt(top[2]):'—',top?`${plural(top[2],['раз','раза','раз'])} в ${TQ(top[0])}`:'раз'],[pshort(PER[peak]),'в этом периоде имя встречается чаще всего']],
+    sparks:`<h4>В скольких текстах периода — % рассказов и пьес</h4>${sparkSVG(rates,{unit:'%',dec:0,tips:rates.map((v,i)=>`${PER[i]}: ${h.per[i]} из ${TXP[i]} ${plural(TXP[i],['текста','текстов'])} (${fmt1(v)}%)`)})}`,
     body:`<h4>В каких текстах${h.texts.length<h.n?` (${h.texts.length} с наибольшим числом упоминаний)`:''}</h4><div class="mini3"><span class="h" style="text-align:left">текст</span><span class="h">год</span><span class="h">раз</span>${rows}</div>
       <h4>Из текстов</h4>${quotesHTML(h.ctx,name,'work')}`});
   if(scroll) nearScroll(card); }
@@ -293,7 +293,7 @@ function paletteText(){ const P=PAL[palKind]; const tot=P.map(r=>sum(r.c.map(c=>
   $('#t-palette').innerHTML = `В ${PALK[palKind]} ${PER[0]} годов главный цвет — «${esc(yo(f[0]))}» (${fmt(Math.round(100*f[2]/tot[0]))}% цветовых слов), в ${PER[NPER-1]} — «${esc(yo(l[0]))}» (${fmt(Math.round(100*l[2]/tot[NPER-1]))}%). Сильнее всего выросла доля цвета «${esc(yo(up.nm))}» (${fmt(Math.round(100*up.last))}% в последнем периоде против ${fmt(Math.round(100*up.prev))}% в среднем по прежним), сильнее всего упала — «${esc(yo(dn.nm))}» (${fmt(Math.round(100*dn.last))}% против ${fmt(Math.round(100*dn.prev))}%).${names.some(skip)?' Слово «вишнёвый» в этот расчёт не входит: в основном это название пьесы «Вишнёвый сад».':''}`; }
 function drawPalette(){ chart(()=>{ const box=$('#c-palette'); const P=PAL[palKind]; const rowH=44; const h=P.length*rowH+8; const [s,w]=svg(box,h); const ring=css('--ring'); const lw=w<560?78:96;
     P.forEach((r,i)=>{ const y=i*rowH+4; const tot=sum(r.c.map(c=>c[2]))||1; let x=lw; const Wd=w-lw-4;
-      txt(s,lw-10,y+17,r.p,{'text-anchor':'end',style:'fill:var(--ink);font-size:12px'}); txt(s,lw-10,y+31,`${fmt(tot)} ${plural(tot,'слово','слова','слов')}`,{'text-anchor':'end',style:'fill:var(--muted);font-size:10.5px'});
+      txt(s,lw-10,y+17,r.p,{'text-anchor':'end',style:'fill:var(--ink);font-size:12px'}); txt(s,lw-10,y+31,`${fmt(tot)} ${plural(tot, ['слово', 'слова', 'слов'])}`,{'text-anchor':'end',style:'fill:var(--muted);font-size:10.5px'});
       r.c.forEach(([name,hex,n])=>{ const ww=Wd*n/tot; if(ww<0.5) return; const k=hasWord(name);
         const rc=el('rect',{x:x+.5,y,width:Math.max(.5,ww-1),height:rowH-10,fill:hex,stroke:ring,'stroke-width':.8,class:k?'clickable':'','data-tip':`${PER[i]} · ${esc(yo(name))}: ${n} (${fmt1(100*n/tot)}%)${k?'<br>нажмите — слово в словоискателе':''}`},s);
         if(k) rc.addEventListener('click',()=>openWord(name));
@@ -311,9 +311,9 @@ function yearCard(y,manual){ YR.y=y; const host=$('#yr-card'); if(manual) chrono
   const st=ST.filter(a=>a.y===y).sort((a,b)=>b.w-a.w), pl=PS.filter(p=>p.y===y), lt=LR.filter(r=>r.y===y);
   const byTo={}; lt.forEach(r=>{ byTo[r.to]=(byTo[r.to]||0)+1; }); const toTop=Object.entries(byTo).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const py=P.by_year.find(r=>r.y===y); const words=sum(st.map(a=>a.w)), lw=sum(lt.map(r=>r.w));
-  const LIM=30; const chip=a=>`<button type="button" class="chip" data-j="${a.j}" data-tip="${esc(a.t)}: ${fmt(a.w)} слов">${esc(cut(a.t,30))}</button>`;
+  const LIM=30; const chip=a=>`<button type="button" class="chip" data-j="${a.j}" data-tip="${esc(a.t)}: ${pn(a.w,['слово','слова','слов'])}">${esc(cut(a.t,30))}</button>`;
   entityCard(host,{eyebrow:'Год',title:String(y),meta:'рассказы и повести — по году первой публикации; письма и пьесы — по дате',
-    tiles:[[fmt(st.length),plural(st.length,'рассказ и повесть','рассказа и повести','рассказов и повестей')],[py?fmt(Math.round(py.w_med)):'—','слов в типичном рассказе (медиана)'],[fmt(pl.length),plural(pl.length,'пьеса','пьесы','пьес')],[fmt(lt.length),plural(lt.length,'письмо','письма','писем')],[fmt(words),'слов в рассказах'],[fmt(lw),'слов в письмах']],
+    tiles:[[fmt(st.length),plural(st.length, ['рассказ и повесть', 'рассказа и повести', 'рассказов и повестей'])],[py?fmt(Math.round(py.w_med)):'—',py?plural(Math.round(py.w_med),['слово в типичном рассказе (медиана)','слова в типичном рассказе (медиана)','слов в типичном рассказе (медиана)']):'слов в типичном рассказе (медиана)'],[fmt(pl.length),plural(pl.length, ['пьеса', 'пьесы', 'пьес'])],[fmt(lt.length),plural(lt.length, ['письмо', 'письма', 'писем'])],[fmt(words),plural(words,['слово в рассказах','слова в рассказах','слов в рассказах'])],[fmt(lw),plural(lw,['слово в письмах','слова в письмах','слов в письмах'])]],
     body:(st.length?`<h4>Рассказы и повести — нажмите, чтобы открыть в атласе</h4><div class="yr-list" id="yr-st">${st.slice(0,LIM).map(chip).join('')}${st.length>LIM?`<button type="button" class="chip" id="yr-more">ещё ${st.length-LIM}</button>`:''}</div>`:'')
       +(pl.length?`<h4>Пьесы</h4><div class="yr-list">${pl.map(p=>`<button type="button" class="chip" data-tt="${esc(p.t)}" data-ty="${p.y}">${esc(p.t)}</button>`).join('')}</div>`:'')
       +(toTop.length?`<h4>Кому писал чаще всего</h4><div class="yr-list">${toTop.map(([nm,n])=>{ const i=ADR.findIndex(a=>a.nom===nm); return i>=0?`<button type="button" class="chip" data-adr="${i}">${esc(nm)} · ${n}</button>`:`<span class="chip static">${esc(nm)} · ${n}</span>`; }).join('')}</div>`:'')
@@ -332,14 +332,14 @@ LT.strip.rows.forEach(r=>{ const y=Math.floor(r[0]/10000), m=Math.floor(r[0]/100
   const c=CAL[y*100+m]||(CAL[y*100+m]={y,m,n:0,w:0,names:{},days:{}}); c.n++; c.w+=r[1]; const nm=LT.strip.names[r[3]]; c.names[nm]=(c.names[nm]||0)+1; if(d) c.days[d]=(c.days[d]||0)+1; });
 const CAL_V = Object.values(CAL); const CAL_Y0 = Math.min(...CAL_V.map(c=>c.y)), CAL_Y1 = Math.max(...CAL_V.map(c=>c.y));
 const CAL_S = {y:bestM[0], m:bestM[1]};
-$('#u-cal').textContent = `писем в месяц по дате письма; ${pn(calUnk,'письмо','письма','писем')} без точного месяца не показаны; нажмите на клетку`;
+$('#u-cal').textContent = `писем в месяц по дате письма; ${pn(calUnk, ['письмо', 'письма', 'писем'])} без точного месяца не показаны; нажмите на клетку`;
 function drawCal(){ chart(()=>{ const box=$('#c-cal'); const nY=CAL_Y1-CAL_Y0+1; const cellH=21, topH=22; const h=topH+12*cellH+4; const [s,w]=svg(box,h); const narrow=w<560; const lw=narrow?34:86; const cw=(w-lw)/nY;
     const mx=Math.max(...CAL_V.map(c=>c.n)); const lo=css('--heat-lo'), hi=css('--heat-hi'); const dark=lum(css('--surface'))<0.2;
     for(let y=CAL_Y0;y<=CAL_Y1;y++){ if(y%5===0) txt(s,lw+cw*(y-CAL_Y0)+cw/2,topH-8,narrow?String(y).slice(2):y,{'text-anchor':'middle',style:'fill:var(--muted);font-size:10.5px'}); }
     for(let m=1;m<=12;m++){ const yy=topH+(m-1)*cellH; txt(s,lw-6,yy+cellH/2+4,narrow?MONN[m-1].slice(0,3):cap1(MONN[m-1]),{'text-anchor':'end',style:'font-family:var(--f-body);font-size:12.5px;fill:var(--ink)'});
       for(let y=CAL_Y0;y<=CAL_Y1;y++){ const c=CAL[y*100+m]; const x=lw+cw*(y-CAL_Y0); const n=c?c.n:0;
         const fill=n?mixc(lo,hi,Math.sqrt(n/mx)):css('--grid');
-        const r=el('rect',{class:n?'clickable':'',x:x+.5,y:yy+.5,width:Math.max(1,cw-1),height:cellH-1,rx:1.5,fill,opacity:n?1:.45,'data-tip':`${MONN[m-1]} ${y}: ${n?pn(n,'письмо','письма','писем')+'<br>нажмите — кому писал':'писем нет'}`},s);
+        const r=el('rect',{class:n?'clickable':'',x:x+.5,y:yy+.5,width:Math.max(1,cw-1),height:cellH-1,rx:1.5,fill,opacity:n?1:.45,'data-tip':`${MONN[m-1]} ${y}: ${n?pn(n, ['письмо', 'письма', 'писем'])+'<br>нажмите — кому писал':'писем нет'}`},s);
         if(n) r.addEventListener('click',()=>calPick(y,m));
         if(n&&cw>=21){ const inkVar=dark?(lum(fill)>0.33?'--heat-ink-hi':'--heat-ink-lo'):(lum(fill)<0.33?'--heat-ink-hi':'--heat-ink-lo'); txt(s,x+cw/2,yy+cellH/2+4,n,{'text-anchor':'middle',style:`pointer-events:none;font-size:9.5px;fill:var(${inkVar})`}); } } }
     const sc=CAL[CAL_S.y*100+CAL_S.m]; if(sc) el('rect',{x:lw+cw*(CAL_S.y-CAL_Y0)-.5,y:topH+(CAL_S.m-1)*cellH-.5,width:cw+1,height:cellH+1,fill:'none',stroke:css('--ink'),'stroke-width':2,'pointer-events':'none'},s);
@@ -347,9 +347,9 @@ function drawCal(){ chart(()=>{ const box=$('#c-cal'); const nY=CAL_Y1-CAL_Y0+1;
 function calCard(){ const c=CAL[CAL_S.y*100+CAL_S.m]; const host=$('#cal-card'); if(!c) return;
   const names=Object.entries(c.names).sort((a,b)=>b[1]-a[1]); const day=Object.entries(c.days).sort((a,b)=>b[1]-a[1])[0];
   entityCard(host,{eyebrow:'Месяц',title:`${cap1(MONN[c.m-1])} ${c.y}`,meta:'кому писал в этом месяце; нажмите на адресата — его карточка',
-    tiles:[[fmt(c.n),plural(c.n,'письмо','письма','писем')],[fmt(names.length),plural(names.length,'адресат','адресата','адресатов')],[fmt(c.w),'слов в письмах']],
+    tiles:[[fmt(c.n),plural(c.n, ['письмо', 'письма', 'писем'])],[fmt(names.length),plural(names.length, ['адресат', 'адресата', 'адресатов'])],[fmt(c.w),plural(c.w,['слово в письмах','слова в письмах','слов в письмах'])]],
     body:`<h4>Адресаты</h4><div class="yr-list">${names.slice(0,30).map(([nm,n])=>{ const i=ADR.findIndex(a=>a.nom===nm); return i>=0?`<button type="button" class="chip" data-adr="${i}">${esc(nm)} · ${n}</button>`:`<span class="chip static">${esc(nm)} · ${n}</span>`; }).join('')}${names.length>30?`<span class="chip static">ещё ${names.length-30}</span>`:''}</div>
-      ${day&&day[1]>1?`<p class="hint" style="margin-top:12px">Больше всего писем за один день этого месяца — ${day[0]}-го: ${pn(day[1],'письмо','письма','писем')}.</p>`:''}`});
+      ${day&&day[1]>1?`<p class="hint" style="margin-top:12px">Больше всего писем за один день этого месяца — ${day[0]}-го: ${pn(day[1], ['письмо', 'письма', 'писем'])}.</p>`:''}`});
   host.querySelectorAll('button[data-adr]').forEach(b=>b.addEventListener('click',()=>selectAdr(+b.dataset.adr,true))); }
 function calPick(y,m){ CAL_S.y=y; CAL_S.m=m; drawCal(); calCard(); }
 drawCal(); calCard();
@@ -388,7 +388,7 @@ function cmpRender(){ const host=$('#cmp-list'); host.innerHTML='';
   if(!CMP.length){ host.innerHTML='<p class="note">Добавьте рассказы из списка или кнопкой «+ в сравнение строения» в атласе.</p>'; return; }
   const cw=host.clientWidth||600; const mxs=Math.max(...CMP.flatMap(j=>A[j].seq));
   CMP.slice().sort((x,y)=>A[x].y-A[y].y||x-y).forEach(j=>{ const a=A[j]; const row=document.createElement('div'); row.className='cmp-row';
-    row.innerHTML=`<div class="h"><b><button type="button" data-j="${j}" data-tip="открыть в атласе">${esc(a.t)}</button></b><span>${a.y} · ${fmt(a.w)} слов · ${fmt(a.np)} абзацев · диалог ${fmt1(a.dlg)}% · фраза ${fmt1(a.sm||0)} слов</span><button type="button" class="x" data-x="${j}" aria-label="убрать из сравнения" data-tip="убрать">✕</button></div>`;
+    row.innerHTML=`<div class="h"><b><button type="button" data-j="${j}" data-tip="открыть в атласе">${esc(a.t)}</button></b><span>${a.y} · ${pn(a.w,['слово','слова','слов'])} · ${pn(a.np,['абзац','абзаца','абзацев'])} · диалог ${fmt1(a.dlg)}% · фраза ${pn(a.sm||0,['слово','слова','слов'],1)}</span><button type="button" class="x" data-x="${j}" aria-label="убрать из сравнения" data-tip="убрать">✕</button></div>`;
     host.appendChild(row); cmpCanvas(row,a,cw,mxs);
     row.querySelector('[data-j]').addEventListener('click',()=>selectStory(j,true)); row.querySelector('[data-x]').addEventListener('click',()=>{ CMP.splice(CMP.indexOf(j),1); cmpRender(); }); }); }
 (function(){ const d=A.findIndex(a=>a.t==='Дама с собачкой'); const base=d>=0?A[d]:SA.filter(a=>a.y>=PERIODS[NPER-1][1]).sort((x,y)=>y.w-x.w)[Math.floor(SA.filter(a=>a.y>=PERIODS[NPER-1][1]).length/2)];
@@ -398,9 +398,9 @@ function cmpRender(){ const host=$('#cmp-list'); host.innerHTML='';
 
 /* ================= методика: новые разделы ================= */
 $('#metod-list').insertAdjacentHTML('beforeend',[
-  `<b>Карта словаря</b> — ${WMD.length} самых частых слов рассказов и пьес; расстановка по окружению слов (t-SNE), группы посчитаны заранее (${EX.wgroups.length}). Размеры слов и красные слова периода считаются по рассказам: число употреблений в периоде делится на число слов рассказов этого периода; «заметно больше» — не реже чем в 1,5 раза, чем в среднем по всем годам, и не меньше 6 раз.`,
-  `<b>Круг Чехова</b> — люди, названные по фамилии в письмах (${NN.length} имён). Связь между двумя именами — они названы в одном абзаце письма; раскладка сети и круги имён посчитаны заранее. Фамилия считается «среди адресатов», если она совпала с фамилией адресата; однофамильцы не различаются.`,
-  `<b>Темы</b> — ${THN.length} тем, у каждой свой список слов; величина — число употреблений слов темы на 1000 слов текстов периода. Цвет в таблице считается внутри строки. «Рост» — последний период, сравнённый со средним по трём прежним. Письма 1880–1886 годов — всего ${fmt(PW_L[0])} слов, поэтому их цифры шаткие.`,
+  `<b>Карта словаря</b> — ${pnr(WMD.length,['самое частое слово рассказов и пьес','самых частых слова рассказов и пьес','самых частых слов рассказов и пьес'])}; расстановка по окружению слов (t-SNE), группы посчитаны заранее (${EX.wgroups.length}). Размеры слов и красные слова периода считаются по рассказам: число употреблений в периоде делится на число слов рассказов этого периода; «заметно больше» — не реже чем в 1,5 раза, чем в среднем по всем годам, и не меньше 6 раз.`,
+  `<b>Круг Чехова</b> — люди, названные по фамилии в письмах (${pnr(NN.length,['имя','имени','имён'])}). Связь между двумя именами — они названы в одном абзаце письма; раскладка сети и круги имён посчитаны заранее. Фамилия считается «среди адресатов», если она совпала с фамилией адресата; однофамильцы не различаются.`,
+  `<b>Темы</b> — ${pnr(THN.length,['тема','темы','тем'])}, у каждой свой список слов; величина — число употреблений слов темы на 1000 слов текстов периода. Цвет в таблице считается внутри строки. «Рост» — последний период, сравнённый со средним по трём прежним. Письма 1880–1886 годов — всего ${pn(PW_L[0],['слово','слова','слов'])}, поэтому их цифры шаткие.`,
   `<b>Палитра периодов</b> — цветовые слова, найденные по словарю; ширина отрезка — доля слова среди цветовых слов периода. <b>Имена героев</b> — доля текстов периода, где имя встречается (рассказов и пьес в периоде: ${TXP.map((n,i)=>PER[i]+' — '+n).join('; ')}).`
 ].map(x=>`<li>${x}</li>`).join(''));
 

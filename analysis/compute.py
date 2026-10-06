@@ -670,7 +670,7 @@ def myths():
     l_ = np.median([r["w"] for r in st if 1888 <= r["y"] <= 1903])
     k = l_ / e
     M["short"].update(v="yes" if k <= 0.8 else "no" if k >= 1.25 else "part",
-                      num=f"медиана рассказа 1880–1886 — {int(e)} слов, 1888–1903 — {int(l_)} слов (в {k:.1f} раза длиннее)",
+                      num=f"медиана рассказа 1880–1886 — {int(e)} {plural(int(e), 'слово', 'слова', 'слов')}, 1888–1903 — {int(l_)} {plural(int(l_), 'слово', 'слова', 'слов')} (в {k:.1f} раза длиннее)",
                       src=src_of(Q["short"]))
     # gun
     g = [h for h in Q["gun"] if ("акт" in h["extra"] or "сцена" in h["extra"])]
@@ -724,16 +724,16 @@ def myths():
     a = L["addressees"]
     ks = L.get("knipper_split", {})
     M["knipper"].update(v="yes" if a[0]["k"] == "Книппер О. Л." else "no",
-                        num=f"{a[0]['nom']} — {a[0]['n']} {plural(a[0]['n'],'письмо','письма','писем')} за {a[0]['y1']-a[0]['y0']+1} лет "
+                        num=f"{a[0]['nom']} — {a[0]['n']} {plural(a[0]['n'],'письмо','письма','писем')} за {a[0]['y1']-a[0]['y0']+1} {plural(a[0]['y1']-a[0]['y0']+1, 'год', 'года', 'лет')} "
                             f"(из них {ks.get('после (Книппер-Чеховой)')} — после свадьбы, адресованы Книппер-Чеховой) "
-                            f"({a[0]['y0']}–{a[0]['y1']}); {a[1]['nom']} — {a[1]['n']} за {a[1]['y1']-a[1]['y0']+1} год ({a[1]['y0']}–{a[1]['y1']})")
+                            f"({a[0]['y0']}–{a[0]['y1']}); {a[1]['nom']} — {a[1]['n']} за {a[1]['y1']-a[1]['y0']+1} {plural(a[1]['y1']-a[1]['y0']+1, 'год', 'года', 'лет')} ({a[1]['y0']}–{a[1]['y1']})")
     # antosha
     f = OUT["overview"]["sig_forms_chekhonte"]
     tot = sum(n for _, n in f)
     full = sum(n for s, n in f if s and s.startswith("Антоша Чехонте"))
     ash = full / tot
     M["antosha"].update(v="yes" if ash >= 0.5 else "part",
-                        num=f"полное «Антоша Чехонте» — {full} {plural(full,'подпись','подписи','подписей')} из {tot} подписей семейства Чехонте; "
+                        num=f"полное «Антоша Чехонте» — {full} {plural(full,'подпись','подписи','подписей')} из {tot} {plural(tot, 'подписи', 'подписей', 'подписей')} семейства Чехонте; "
                             f"обычная форма — «{f[0][0]}» ({f[0][1]})")
     V = OUT.get("voices", {}).get("chekhonte") if "chekhonte" in M else None
     if "chekhonte" not in M:
@@ -842,7 +842,7 @@ def voices():
     res["verdict"] = final
     res["verdict_nopron"] = vs2[0] if len(set(vs2)) == 1 else "неустойчиво"
     res["num"] = (f"расстояние Чехонте ↔ Чехов {r200['D']} против {max(r200['base'].values())} внутри одной подписи "
-                  f"(200 частых слов; {n} + {n} кусков по {size} слов повествования, 1886–1887)")
+                  f"(200 частых слов; {n} + {n} {plural(n, 'кусок', 'куска', 'кусков')} по {size} слов повествования, 1886–1887)")
     res["outlets"] = {sig: Counter(D[i]["outlet"] for i in ids).most_common(4) for sig, ids in sel.items()}
     OUT.setdefault("voices", {})["chekhonte"] = res
     if QA:

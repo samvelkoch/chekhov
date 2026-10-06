@@ -3,6 +3,16 @@ const $ = s => document.querySelector(s);
 const fmt = n => Number(n).toLocaleString('ru-RU');
 const fmt1 = n => Number(n).toLocaleString('ru-RU',{maximumFractionDigits:1});
 const fmt2 = n => Number(n).toLocaleString('ru-RU',{maximumFractionDigits:2});
+/* Склонение по числу. plural(n,['письмо','письма','писем']): 1, 21… (кроме 11) — первая форма; 2–4, 22–24… (кроме 12–14) — вторая; остальные и 11–14 — третья.
+   Две формы ['ед.','мн.'] — для косвенных падежей («из 21 стихотворения», «в 22 стихотворениях», «длиннее 42 слов»).
+   Четвёртая форма (необязательно) — для дробных чисел, по умолчанию вторая («2,7 слова»). dec — сколько знаков после запятой видно на странице.
+   Старая запись plural(n,'письмо','письма','писем') тоже работает (число округляется). */
+const plural=(n,a,b,c)=>{ let f=a,dec=b; if(!Array.isArray(a)){ f=[a,b,c]; dec=0; } let x=Math.abs(+n); if(dec!=null){ const k=10**dec; x=Math.round(x*k)/k; }
+  if(!Number.isInteger(x)) return f.length===2?f[0]:(f[3]||f[1]);
+  const d=x%10, h=x%100; if(d===1&&h!==11) return f[0];
+  return f.length===2?f[1]:(d>=2&&d<=4&&(h<12||h>14)?f[1]:f[2]); };
+const pn=(n,a,b,c)=>`${(Array.isArray(a)&&b===1?fmt1:fmt)(n)} ${plural(n,a,b,c)}`;
+const pnr=(n,f)=>`${n} ${plural(n,f)}`;
 const NS = 'http://www.w3.org/2000/svg';
 let TK={}; const css = v => (v in TK) ? TK[v] : (TK[v]=getComputedStyle(document.documentElement).getPropertyValue(v).trim());
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
