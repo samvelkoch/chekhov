@@ -36,6 +36,7 @@
 | 4. Подсчёты по модулям | `analysis/compute.py --qa [модуль …]` | `analysis/stats.json` |
 | 4б. Данные интерактивов: палитра периодов, карта словаря (PPMI → SVD → t-SNE), сеть «Круг Чехова», герои, темы | `analysis/explore.py --qa` | `analysis/explore.json` |
 | 5. Отчёт | `analysis/build_report.py` (+ `report.head/body/lib/app/ui/chrome`) | `docs/prosvet.html` |
+| 6. Живой портрет на первом экране и биография в «Хронологии» | `analysis/live_portrait/`: `portrait_block.py` (разметка, подставляется `build_report.py` вместо `{{PORTRAIT}}`, `{{PORTRAIT_JS}}`, `{{BIO_CARD}}`), `portrait.js` (поведение), `sync_assets.py` (`bio` — подпись и биография из naprosvet/chekhov-live; `final` — ролик 640×640 и постер; `deploy` — ролик рядом со страницами); `analysis/wrap_site.py` — обёртка сайта | `portrait.mp4`, `portrait.webm` рядом со страницей (`naprosvet-site/chekhov/`); постер встроен в страницу |
 
 Поля `stats.json` и `explore.json` описаны в [`analysis/DATA.md`](analysis/DATA.md).
 

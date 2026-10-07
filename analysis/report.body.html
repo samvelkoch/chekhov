@@ -60,14 +60,19 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
 <div class="bar"><div class="inner"><div class="brand">Чехов<i>_</i> на просвет</div><nav class="tabs" aria-label="Части"><button type="button" data-part="part-obzor" aria-current="true"><small>I</small>Обзор</button><button type="button" data-part="part-proza" aria-current="false"><small>II</small>Проза</button><button type="button" data-part="part-piesy" aria-current="false"><small>III</small>Пьесы</button><button type="button" data-part="part-pisma" aria-current="false"><small>IV</small>Письма</button><button type="button" data-part="part-vrach" aria-current="false"><small>V</small>Врач</button><button type="button" data-part="part-slova" aria-current="false"><small>VI</small>Слова</button><button type="button" data-part="part-mir" aria-current="false"><small>VII</small>Мир Чехова</button><button type="button" data-part="part-konec" aria-current="false"><small>VIII</small>Рекорды и методика</button></nav></div></div>
 <header class="hero" id="top">
   <div class="inner">
-    <div class="eyebrow">Полное собрание сочинений и писем в 30 томах, 1875–1904 · частотный и стилевой анализ</div>
-    <h1><span class="typed">Чехов</span><span class="hand">на просвет</span></h1>
-    <p class="lede" id="lede"></p>
-    <div class="tools">
-      <label for="hl-input">Подсветить слово в рассказах</label>
-      <input type="search" id="hl-input" placeholder="например, самовар" autocomplete="off" spellcheck="false">
-      <div class="chips" id="hl-chips"></div>
-      <span class="count" id="hl-count" aria-live="polite"></span><span class="count" id="yr-note" aria-live="polite"></span>
+    <div class="hero-grid">
+      <div class="hero-text">
+        <div class="eyebrow">Полное собрание сочинений и писем в 30 томах, 1875–1904 · частотный и стилевой анализ</div>
+        <h1><span class="typed">Чехов</span><span class="hand">на просвет</span></h1>
+        <p class="lede" id="lede"></p>
+        <div class="tools">
+          <label for="hl-input">Подсветить слово в рассказах</label>
+          <input type="search" id="hl-input" placeholder="например, самовар" autocomplete="off" spellcheck="false">
+          <div class="chips" id="hl-chips"></div>
+          <span class="count" id="hl-count" aria-live="polite"></span><span class="count" id="yr-note" aria-live="polite"></span>
+        </div>
+      </div>
+      {{PORTRAIT}}
     </div>
     <div class="ecg" id="ecg"><canvas id="ecg-cv" role="img" aria-label="Все рассказы и все письма Чехова на одной оси времени: рассказы — пики вверх, высота по числу слов; письма — пики вниз"></canvas></div>
     <div class="legend-h" id="ecg-legend"></div>
@@ -75,6 +80,7 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
     <div class="figures" id="figures"></div>
   </div>
 </header>
+{{PORTRAIT_JS}}
 <div class="inner"><div class="layout">
 <nav class="rail" aria-label="Разделы"><div class="g">I · Обзор</div><a href="#glavnoe"><span>I.1</span>Главное коротко</a><a href="#mify"><span>I.2</span>Мифы и факты</a><a href="#hronologia"><span>I.3</span>Хронология</a><div class="g">II · Проза</div><a href="#dlina"><span>II.1</span>Длина и фраза</a><a href="#dialog"><span>II.2</span>Диалог и «я»</a><a href="#znaki"><span>II.3</span>Знаки</a><a href="#pechat"><span>II.4</span>Где и как подписано</a><a href="#atlas"><span>II.5</span>Атлас рассказов</a><div class="g">III · Пьесы</div><a href="#kto"><span>III.1</span>Кто говорит</a><a href="#pauzy"><span>III.2</span>Паузы и ремарки</a><div class="g">IV · Письма</div><a href="#gde"><span>IV.1</span>Когда и откуда</a><a href="#adresaty"><span>IV.2</span>Адресаты</a><a href="#podpisi"><span>IV.3</span>Как он подписывался</a><a href="#kunst"><span>IV.4</span>Кунсткамера подписей</a><a href="#bran"><span>IV.5</span>Крепкое словцо</a><a href="#dengi"><span>IV.6</span>Деньги</a><div class="g">V · Врач</div><a href="#praktika"><span>V.1</span>Советы и практика</a><a href="#bolezn"><span>V.2</span>Своя болезнь</a><a href="#vrachi"><span>V.3</span>Врачи в прозе и на сцене</a><div class="g">VI · Слова</div><a href="#slovar"><span>VI.1</span>Частые слова</a><a href="#poisk"><span>VI.2</span>Словоискатель</a><a href="#karta"><span>VI.3</span>Карта словаря</a><a href="#epohi"><span>VI.4</span>Слова эпох</a><a href="#temy"><span>VI.5</span>Темы</a><div class="g">VII · Мир Чехова</div><a href="#lyudi"><span>VII.1</span>Круг Чехова</a><a href="#geroi"><span>VII.2</span>Имена героев</a><a href="#mesta"><span>VII.3</span>Места</a><a href="#zveri"><span>VII.4</span>Звери и клички</a><a href="#eda"><span>VII.5</span>Еда и напитки</a><a href="#sad"><span>VII.6</span>Сад, лес, дорога</a><a href="#cveta"><span>VII.7</span>Цвета</a><div class="g">VIII · Рекорды и методика</div><a href="#rekordy"><span>VIII.1</span>Рекорды</a><a href="#korpus"><span>VIII.2</span>Корпус</a><a href="#metod"><span>VIII.3</span>Методика</a></nav>
 <div class="content">
@@ -95,6 +101,7 @@ input[type=search]{font-family:var(--f-mono); font-size:14px; padding:6px 10px; 
 <section id="hronologia">
   <div class="kick"><b>I.3</b><span>Обзор</span></div>
   <h2>Хронология <span class="tag">интерактив</span></h2>
+  {{BIO_CARD}}
   <p class="finding" id="f-chrono"></p>
   <div class="panel"><div class="cap"><span class="t">Сколько написано за год</span><span class="u">тыс. слов: рассказы и повести по году первой публикации, письма по дате; нажмите на год — что в нём написано</span></div>
     <div class="legend" id="lg-chrono"></div>

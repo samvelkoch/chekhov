@@ -19,7 +19,7 @@
   --ring:rgba(33,27,22,.15); --tip-bg:#211b16; --tip-ink:#f6efe1; --shade:rgba(33,27,22,.06);
   --mark:#b8391f; --ok:#0d6f42; --bad:#b32f1e; --warn:#85560a;
   --g1:#c2452a; --g2:#0e8f79; --g3:#b57f0a; --g4:#b8507a; --g5:#7a8f1e; --g6:#8b5a3a; --g7:#d9773a; --g8:#4b7a5a;
-  --desk:#221a14; --desk-2:#3a2a1f; --hsheet:#f3ebd9; --hink:#2b2118; --hmute:#9b8d7a; --hring:#cdbfa5;
+  --lptone:#ffffff; --desk:#221a14; --desk-2:#3a2a1f; --hsheet:#f3ebd9; --hink:#2b2118; --hmute:#9b8d7a; --hring:#cdbfa5;
   --hmark:#f0765a; --hlabel:#b9ab96; --hsel:#ffd166; --htext:#f7f0e2; --htext-2:#d6c9b4;
   --f-display:"PT Serif", Georgia, "Times New Roman", serif;
   --f-body:"PT Serif", Georgia, "Times New Roman", serif;
@@ -38,7 +38,7 @@
     --ring:rgba(255,240,220,.12); --tip-bg:#f0e8d8; --tip-ink:#211b16; --shade:rgba(255,240,220,.05);
     --mark:#ff8064; --ok:#4cd08a; --bad:#ff8a78; --warn:#e6b04a;
     --g1:#e4664a; --g2:#25aa90; --g3:#b88a1c; --g4:#d9678f; --g5:#9db04a; --g6:#b08560; --g7:#f0955a; --g8:#6fae84;
-    --desk:#0e0a08; --desk-2:#241a13; --hsheet:#e4d9c3;
+    --lptone:#efebe5; --desk:#0e0a08; --desk-2:#241a13; --hsheet:#e4d9c3;
   }
 }
 :root[data-theme="dark"]{
@@ -53,7 +53,7 @@
   --ring:rgba(255,240,220,.12); --tip-bg:#f0e8d8; --tip-ink:#211b16; --shade:rgba(255,240,220,.05);
   --mark:#ff8064; --ok:#4cd08a; --bad:#ff8a78; --warn:#e6b04a;
   --g1:#e4664a; --g2:#25aa90; --g3:#b88a1c; --g4:#d9678f; --g5:#9db04a; --g6:#b08560; --g7:#f0955a; --g8:#6fae84;
-  --desk:#0e0a08; --desk-2:#241a13; --hsheet:#e4d9c3;
+  --lptone:#efebe5; --desk:#0e0a08; --desk-2:#241a13; --hsheet:#e4d9c3;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:auto}
@@ -338,4 +338,32 @@ blockquote b{font-style:normal; color:var(--mark)}
 .sh-list li.more{display:block; margin-top:4px}
 .sh-list li.more button{font-family:var(--f-mono); font-size:12px; color:var(--muted)}
 @media (hover:none) and (pointer:coarse){input[type=search],input[type=text],select,textarea{font-size:16px!important}}
+/* ---------- живой портрет на первом экране (ролик и постер 1:1, 640×640) ---------- */
+.hero-grid{display:grid; grid-template-columns:minmax(0,1fr); gap:30px 44px; align-items:start}
+@media (min-width:900px){ .hero-grid{grid-template-columns:minmax(0,1fr) minmax(260px,min(36%,400px))} }
+.hero-text{min-width:0}
+.hero-portrait{display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; min-width:0}
+.lp{margin:0; width:min(78%,320px); transform:rotate(1.4deg); --fold-bg:var(--desk)}
+@media (min-width:900px){ .lp{width:min(100%,400px)} }
+.lp-sheet{position:relative; aspect-ratio:1/1; background-color:var(--hsheet); overflow:hidden; isolation:isolate;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .28  0 0 0 0 .2  0 0 0 .11 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  box-shadow:0 1px 0 rgba(0,0,0,.25), 0 22px 34px -18px rgba(0,0,0,.6)}
+.lp-sheet::after{content:""; position:absolute; top:0; right:0; width:7%; aspect-ratio:1; z-index:2; pointer-events:none;
+  background:linear-gradient(225deg,var(--fold-bg) 50%,rgba(60,45,30,.32) 50%)}
+.lp-art{position:absolute; inset:0;
+  -webkit-mask-image:radial-gradient(ellipse 96% 96% at 50% 50%,#000 60%,transparent 100%); mask-image:radial-gradient(ellipse 96% 96% at 50% 50%,#000 60%,transparent 100%)}
+.lp-art::after{content:""; position:absolute; inset:0; background:var(--lptone); mix-blend-mode:multiply; pointer-events:none}
+.lp-poster,.lp-video{position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block}
+.lp-video{opacity:0; transition:opacity .2s ease; pointer-events:none}
+.lp-video.on{opacity:1}
+.lp-sig{display:block; width:min(56%,230px); height:auto; color:var(--htext); margin-top:6px; transform:rotate(-2deg)}
+.lp-dates{margin:0; font-family:var(--f-mono); font-size:12.5px; letter-spacing:.04em; color:var(--hlabel); text-align:center}
+@media (prefers-reduced-motion: reduce){ .lp-video{transition:none} }
+
+/* ---------- краткая биография в «Хронологии» ---------- */
+.bio{position:relative; background:var(--surface); border:1px solid var(--ring); border-left:3px solid var(--mark); padding:16px 22px 14px; margin:14px 0 22px; max-width:70ch}
+.bio-k{font-family:var(--f-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mark); font-weight:500; margin-bottom:6px}
+.bio-t{font-family:var(--f-display); font-weight:700; font-size:21px; line-height:1.2; margin:0 0 8px}
+.bio p{font-size:16px; line-height:1.55; margin:0 0 8px}
+.bio .bio-src{font-family:var(--f-mono); font-size:11.5px; color:var(--muted); margin:10px 0 0}
 </style>

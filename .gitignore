@@ -17,3 +17,9 @@ docs/*.html
 !analysis/report.*.html
 
 *.log
+
+# ── живой портрет: в git только постер (webp); ролик лежит рядом со страницей сайта (naprosvet-site/chekhov/portrait.*) и копируется из naprosvet/chekhov-live ──
+analysis/live_portrait/final/*.mp4
+analysis/live_portrait/final/*.webm
+analysis/live_portrait/final/*.jpg
+docs/portrait.*
