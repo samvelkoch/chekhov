@@ -210,8 +210,8 @@ for name, n, adr in people:
         ps = set(C.t_para[L_idx[np.isin(lem_L, lids)]].tolist())
     if ps:
         paras_by_person[name] = ps
-# расширим пул: люди с ≥ 8 письмами из ранжированного списка (он уже очищен), до 120
-pool = [p for p in people if p[0] in paras_by_person][:120]
+# расширим пул: люди с ≥ 8 письмами из ранжированного списка (он уже очищен), до 200
+pool = [p for p in people if p[0] in paras_by_person][:200]
 N = len(pool)
 names = [p[0] for p in pool]
 Wm = np.zeros((N, N))
